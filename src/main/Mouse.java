@@ -1,1 +1,3 @@
-public class Mouse {}
+public class Mouse {
+
+}

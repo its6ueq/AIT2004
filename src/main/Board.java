@@ -1,1 +1,5 @@
-public class Board {}
+package main;
+
+public class Board {
+
+}
