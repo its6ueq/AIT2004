@@ -1,7 +1,7 @@
 package piece;
 import main.GamePanel;
 public class King extends Piece {
-    public King (int col, int col, int row) {
+    public King (int color, int col, int row) {
         super(color, col, row);
         if (color == GamePanel.WHITE) {
             image = getImage("/piece/w-king");
@@ -17,4 +17,3 @@ public class King extends Piece {
         return false;
     }
 }
-
