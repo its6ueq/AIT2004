@@ -1,5 +1,3 @@
-package main;
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -8,8 +6,6 @@ public class GamePanel extends JPanel implements Runnable {
     public static final int HEIGHT = 800;
     final int FPS = 60;
     Thread gameThread;
-    Board board = new Board ();
-
     public GamePanel(){
         setPreferredSize (new Dimension (WIDTH, HEIGHT));
         setBackground (Color.BLACK);
@@ -46,8 +42,6 @@ public class GamePanel extends JPanel implements Runnable {
 
     public void paintComponent(Graphics g){
         super.paintComponent (g);
-        Graphics2D g2 = (Graphics2D) g;
-        board.draw (g2);
     }
 
 
