@@ -32,10 +32,10 @@ public class Piece {
     }
 
     public int getX(int col) {
-        //return col * Board.SQUARE_SIZE;
+        return col * Board.SQUARE_SIZE;
     }
 
     public int getY(int row) {
-        //return row * Board.SQUARE_SIZE;
+        return row * Board.SQUARE_SIZE;
     }
 }
