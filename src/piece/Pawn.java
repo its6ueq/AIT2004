@@ -1,5 +1,4 @@
 package piece;
-<<<<<<< HEAD
 import main.GamePanel;
 public class Pawn extends Piece {
     public Pawn(int color, int col, int row) {
@@ -31,12 +30,4 @@ public class Pawn extends Piece {
             }
         }
         return false;
-=======
-
-public class Pawn extends Piece{
-    public Pawn (int color, int col, int row){
-        super (color, col, row);
-
->>>>>>> d0cd743a69d19a56832ed6636752cb6923361a01
-    }
 }
