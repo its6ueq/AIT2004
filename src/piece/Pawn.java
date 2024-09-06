@@ -10,6 +10,7 @@ public class Pawn extends Piece {
             image = getImage("/piece/b-pawn");
         }
     }
+
     public boolean canMove(int targetCol, int targetRow) {
         if (isWithinBoard(targetCol, targetRow) && !isSameSquare(targetCol, targetRow)) {
             int moveValue;
@@ -30,4 +31,9 @@ public class Pawn extends Piece {
             }
         }
         return false;
+<<<<<<< HEAD
 }
+=======
+    }
+}
+>>>>>>> 7bd6fa91d709f4df1765fd2796ed776e4365faf9
