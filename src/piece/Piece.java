@@ -11,7 +11,7 @@ import main.Type;
 import javax.imageio.ImageIO;
 
 public class Piece {
-    Type type;
+    public Type type;
     public BufferedImage image;
     public int x, y;
     public int col, row, preCol, preRow;
