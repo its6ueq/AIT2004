@@ -59,7 +59,7 @@ public class GamePanel extends JPanel implements Runnable {
         pieces.add (new Bishop (WHITE, 2, 7));
         pieces.add (new Bishop (WHITE, 5, 7));
         pieces.add (new Queen (WHITE, 3, 7));
-        pieces.add (new King (WHITE, 4, 4));
+        pieces.add (new King (WHITE, 4, 7));
 
         pieces.add (new Pawn (BLACK, 0, 1));
         pieces.add (new Pawn (BLACK, 1, 1));
@@ -106,6 +106,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     private void update(){
         if(mouse.pressed){
+            System.out.println ("mouse: " + mouse.x + " " + mouse.y);
             if(activeP == null){
                 for(Piece piece : simPieces){
                     if(piece.color == currentColor &&
