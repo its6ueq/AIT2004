@@ -5,8 +5,7 @@ public class Pawn extends Piece {
         super(color, col, row);
         if (color == GamePanel.WHITE) {
             image = getImage("/piece/w-pawn");
-        }
-        else {
+        } else {
             image = getImage("/piece/b-pawn");
         }
     }
@@ -26,14 +25,10 @@ public class Pawn extends Piece {
             if (!moved && targetCol == preCol && targetRow == preRow + moveValue * 2 && hittingP == null && !pieceIsOnStraightLine(targetCol, targetRow)) {
                 return true;
             }
-            if (Math.abs(targetCol - preCol) == 1 && targetRow == preRow + moveValue && hittingP != null) {
+            if (Math.abs(targetCol - preCol) == 1 && targetRow == preRow + moveValue && hittingP != null && hittingP.color != color) {
                 return true;
             }
         }
         return false;
-<<<<<<< HEAD
-}
-=======
     }
 }
->>>>>>> 7bd6fa91d709f4df1765fd2796ed776e4365faf9
