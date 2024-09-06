@@ -24,6 +24,7 @@ public class Mouse extends MouseAdapter {
 
     @Override
     public void mouseMoved(MouseEvent e) {
-
+        x = e.getX ();
+        y = e.getY ();
     }
 }

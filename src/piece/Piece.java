@@ -19,7 +19,7 @@ public class Piece {
     public Piece hittingP;
     public boolean moved, twoStepped;
 
-    public Piece(int color, int row, int col) {
+    public Piece(int color, int col, int row) {
         this.color = color;
         this.row = row;
         this.col = col;
@@ -49,11 +49,11 @@ public class Piece {
     }
 
     public int getCol(int x) {
-        return (x + Board.HALF_SQAURE_SIZE)/Board.SQUARE_SIZE;
+        return (x + Board.HALF_SQUARE_SIZE)/Board.SQUARE_SIZE;
     }
 
     public int getRow(int y) {
-        return (y + Board.HALF_SQAURE_SIZE)/Board.SQUARE_SIZE;
+        return (y + Board.HALF_SQUARE_SIZE)/Board.SQUARE_SIZE;
     }
 
     public int getIndex(){
@@ -87,6 +87,13 @@ public class Piece {
         return targetCol >= 0 && targetCol <= 7 && targetRow >= 0 && targetRow <= 7;
     }
 
+    public boolean isSameSquare(int targetCol, int targetRow){
+        if(targetCol == preCol && targetRow == preRow){
+            return true;
+        }
+        return false;
+    }
+
     public Piece getHittingP(int targetCol, int targetRow) {
         for (Piece piece : GamePanel.simPieces) {
             if (piece.col == targetCol && piece.row == targetRow && piece != this) {
@@ -98,13 +105,12 @@ public class Piece {
 
     public boolean isValidSquare(int targetCol, int targetRow) {
         hittingP = getHittingP(targetCol, targetRow);
-
         if (hittingP == null){
             return true;
         }
         else {
             if (hittingP.color != this.color){ //capture if diff color
-                return false;
+                return true;
             }
             else {
                 hittingP = null;
@@ -153,7 +159,7 @@ public class Piece {
         return false;
     }
 
-    public boolean pieceIsOnDIagonalLine(int targetCol, int targetRow) {
+    public boolean pieceIsOnDiagonalLine(int targetCol, int targetRow) {
         if (targetRow < preRow){
             //Up left
             for (int c = preCol-1; c > targetCol; c--) {
