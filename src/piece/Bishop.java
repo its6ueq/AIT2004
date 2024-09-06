@@ -5,9 +5,11 @@ public class Bishop extends Piece {
         super(color, col, row);
         if (color == GamePanel.WHITE) {
             image = getImage("/piece/w-bishop");
+            symbol = 'B';
         }
         else {
             image = getImage("/piece/b-bishop");
+            symbol = 'b';
         }
     }
     public boolean canMove(int targetCol, int targetRow) {

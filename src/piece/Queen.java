@@ -5,9 +5,11 @@ public class Queen extends Piece {
         super(color, col, row);
         if (color == GamePanel.WHITE) {
             image = getImage("/piece/w-queen");
+            symbol = 'Q';
         }
         else {
             image = getImage("/piece/b-queen");
+            symbol = 'q';
         }
     }
     public boolean canMove(int targetCol, int targetRow) {

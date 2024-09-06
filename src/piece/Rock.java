@@ -5,9 +5,11 @@ public class Rock extends Piece {
         super(color, col, row);
         if (color == GamePanel.WHITE) {
             image = getImage("/piece/w-rook");
+            symbol = 'R';
         }
         else {
             image = getImage("/piece/b-rook");
+            symbol = 'r';
         }
     }
     public boolean canMove(int targetCol, int targetRow) {

@@ -18,6 +18,7 @@ public class Piece {
     public int color;
     public Piece hittingP;
     public boolean moved, twoStepped;
+    public char symbol;
 
     public Piece(int color, int col, int row) {
         this.color = color;

@@ -5,9 +5,11 @@ public class Knight extends Piece {
         super(color, col, row);
         if (color == GamePanel.WHITE) {
             image = getImage("/piece/w-knight");
+            symbol = 'K';
         }
         else {
             image = getImage("/piece/b-knight");
+            symbol = 'k';
         }
     }
     public boolean canMove(int targetCol, int targetRow) {

@@ -14,6 +14,7 @@ public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;
     Board board = new Board ();
     Mouse mouse = new Mouse ();
+    char[][] current_board = new char[8][8];
 
     public static ArrayList<Piece> pieces = new ArrayList<Piece> ();
     public static ArrayList<Piece> simPieces = new ArrayList<> ();
@@ -77,6 +78,8 @@ public class GamePanel extends JPanel implements Runnable {
         pieces.add (new Bishop (BLACK, 5, 0));
         pieces.add (new Queen (BLACK, 3, 0));
         pieces.add (new King (BLACK, 4, 0));
+
+        updateBoard();
     }
 
     private void copyPieces(ArrayList<Piece> source, ArrayList<Piece> target){
@@ -106,7 +109,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     private void update(){
         if(mouse.pressed){
-            System.out.println ("mouse: " + mouse.x + " " + mouse.y);
+            //System.out.println ("mouse: " + mouse.x + " " + mouse.y);
             if(activeP == null){
                 for(Piece piece : simPieces){
                     if(piece.color == currentColor &&
@@ -127,6 +130,7 @@ public class GamePanel extends JPanel implements Runnable {
                     copyPieces (simPieces, pieces);
                     activeP.updatePosition ();
 
+                    updateBoard();
                     changePlayer();
                 }
                 else{
@@ -135,6 +139,24 @@ public class GamePanel extends JPanel implements Runnable {
                     activeP = null;
                 }
             }
+        }
+    }
+
+    private void updateBoard(){
+        for (int i = 0; i < 8; i++){
+            for (int j = 0; j < 8; j++){
+                current_board[i][j] = '0';
+            }
+        }
+        for (Piece p : pieces){
+            current_board[p.row][p.col] = p.symbol;
+        }
+        System.out.println ("=========================================");
+        for (int i = 0; i < 8; i++){
+            for (int j = 0; j < 8; j++){
+                System.out.print(current_board[i][j] + " ");
+            }
+            System.out.println();
         }
     }
 
