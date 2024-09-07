@@ -19,7 +19,7 @@ public class GamePanel extends JPanel implements Runnable {
     public static ArrayList<Piece> pieces = new ArrayList<Piece> ();
     public static ArrayList<Piece> simPieces = new ArrayList<> ();
     ArrayList<Piece> promoPieces = new ArrayList<> ();
-    Piece activeP;
+    Piece activeP, checkingP;
     public static Piece castlingP;
     public static final int WHITE = 0;
     public static final int BLACK = 1;
@@ -28,6 +28,7 @@ public class GamePanel extends JPanel implements Runnable {
     boolean canMove;
     boolean validSquare;
     boolean promotion;
+    boolean gameOver;
     public GamePanel(){
         setPreferredSize (new Dimension (WIDTH, HEIGHT));
         setBackground (Color.BLACK);
@@ -138,6 +139,9 @@ public class GamePanel extends JPanel implements Runnable {
                             castlingP.updatePosition();
                         }
                         updateBoard();
+                        if (isKingInCheck()) {
+
+                        }
                         if (canPromote()) {
                             promotion = true;
                         }
@@ -197,8 +201,30 @@ public class GamePanel extends JPanel implements Runnable {
                 simPieces.remove(activeP.hittingP);
             }
             checkCastling();
+            if (isIllegal(activeP) || opponentCanCaptureKing()) {
+                return;
+            }
             validSquare = true;
         }
+    }
+    private boolean isIllegal(Piece king) {
+        if (king.type == Type.KING) {
+            for (Piece piece : simPieces) {
+                if (piece != king && piece.color != king.color && piece.canMove(king.col, king.row)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    private boolean opponentCanCaptureKing() {
+        Piece king = getKing(false);
+        for (Piece piece : simPieces) {
+            if (piece.color != king.color && piece.canMove(king.col, king.row)) {
+                return true;
+            }
+        }
+        return false;
     }
     private void checkCastling() {
         if (castlingP != null) {
@@ -206,6 +232,32 @@ public class GamePanel extends JPanel implements Runnable {
             else if (castlingP.col == 7) castlingP.col -= 2;
             castlingP.x = castlingP.getX(castlingP.col);
         }
+    }
+    private boolean isKingInCheck() {
+        Piece king = getKing(true);
+        if (activeP.canMove(king.col, king.row)) {
+            checkingP = activeP;
+            return true;
+        }
+        checkingP = null;
+        return false;
+    }
+    private Piece getKing(boolean opponent) {
+        Piece king = null;
+        for (Piece piece : simPieces) {
+            if (piece.type == Type.KING) {
+                if (opponent && piece.color != currentColor) {
+                    king = piece;
+                    break;
+                }
+                else if (!opponent && piece.color == currentColor) {
+                    king = piece;
+                    break;
+                }
+            }
+
+        }
+        return king;
     }
     private void changePlayer(){
         if (currentColor == WHITE){
@@ -268,14 +320,27 @@ public class GamePanel extends JPanel implements Runnable {
             p.draw (g2);
         }
 
-        if(activeP != null){
-            g2.setColor (Color.WHITE);
-            g2.setComposite (AlphaComposite.getInstance (AlphaComposite.SRC_OVER, 0.7f));
-            g2.fillRect (activeP.col * Board.SQUARE_SIZE, activeP.row * Board.SQUARE_SIZE,
-                    Board.SQUARE_SIZE, Board.SQUARE_SIZE);
-            g2.setComposite (AlphaComposite.getInstance (AlphaComposite.SRC_OVER, 1f));
+        if(activeP != null) {
+            if (canMove) {
+                if (isIllegal(activeP) || opponentCanCaptureKing()) {
+                    g2.setColor(Color.GRAY);
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+                    g2.fillRect(activeP.col * Board.SQUARE_SIZE, activeP.row * Board.SQUARE_SIZE,
+                            Board.SQUARE_SIZE, Board.SQUARE_SIZE);
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
 
-            activeP.draw(g2);
+                    activeP.draw(g2);
+                }
+                else {
+                    g2.setColor(Color.WHITE);
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+                    g2.fillRect(activeP.col * Board.SQUARE_SIZE, activeP.row * Board.SQUARE_SIZE,
+                            Board.SQUARE_SIZE, Board.SQUARE_SIZE);
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+
+                    activeP.draw(g2);
+                }
+            }
         }
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -285,6 +350,22 @@ public class GamePanel extends JPanel implements Runnable {
         if (promotion) {
             for (Piece piece : promoPieces) {
                 g2.drawImage(piece.image, piece.getX(piece.col), piece.getY(piece.row), Board.SQUARE_SIZE, Board.SQUARE_SIZE, null);
+            }
+        }
+        else {
+            if (currentColor == WHITE) {
+                g2.drawString("White's turn", 850, 250);
+                if (checkingP != null && checkingP.color == BLACK) {
+                    g2.drawString("The King", 840, 350);
+                    g2.drawString("is in check!", 840, 450);
+                }
+            }
+            else {
+                g2.drawString("Black's turn", 850, 250);
+                if (checkingP != null && checkingP.color == WHITE) {
+                    g2.drawString("The King", 840, 350);
+                    g2.drawString("is in check!", 840, 450);
+                }
             }
         }
     }
