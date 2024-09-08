@@ -14,7 +14,8 @@ public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;
     Board board = new Board ();
     Mouse mouse = new Mouse ();
-    char[][] current_board = new char[8][8];
+
+    public static char[][] current_board = new char[8][8];
 
     public static ArrayList<Piece> pieces = new ArrayList<Piece> ();
     public static ArrayList<Piece> simPieces = new ArrayList<> ();
