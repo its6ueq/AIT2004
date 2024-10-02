@@ -14,7 +14,7 @@ public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;
     Board board = new Board ();
     Mouse mouse = new Mouse ();
-    AI ai = new AI ();
+    AI ai = new AI (this);
     char[][] current_board = new char[8][8];
 
     public static ArrayList<Piece> pieces = new ArrayList<Piece> ();
@@ -206,6 +206,7 @@ public class GamePanel extends JPanel implements Runnable {
 //        for (Piece piece : pieces) {
 //            System.out.println(piece);
 //        }
+        System.out.println("Current Value: " + ai.evaluateBoard(current_board));
     }
 
     private Piece createPieceFromChar(char pieceChar, int row, int col) {
@@ -222,16 +223,17 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void aiMove() {
-        int bestMoveValue = Integer.MIN_VALUE;
+        int bestMoveValue = Integer.MAX_VALUE;
         char[][] bestMove = null;
         for (char[][] move : ai.getAllPossibleMoves(current_board, false)) {
-            int moveValue = ai.minimax(move, 3, false, Integer.MIN_VALUE, Integer.MAX_VALUE);
+            int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, 4, move);
             System.out.println("Move Value: " + moveValue);
-            if (moveValue > bestMoveValue) {
+            if (moveValue < bestMoveValue) {
                 bestMoveValue = moveValue;
                 bestMove = move;
             }
         }
+        System.out.println("Best Move Value: " + bestMoveValue);
 //        for (int i = 0; i < 8; i++){
 //            for (int j = 0; j < 8; j++){
 //                System.out.print(bestMove[i][j] + " ");
@@ -239,10 +241,11 @@ public class GamePanel extends JPanel implements Runnable {
 //            System.out.println();
 //        }
         if (bestMove != null) {
+            //System.out.println("Best Move: " + bestMoveValue);
             updateBoardWithBestMove(bestMove);
             updateBoard();
-            changePlayer();
         }
+        changePlayer();
     }
 
     private void simulate(){
