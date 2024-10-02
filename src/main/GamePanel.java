@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 
+
 public class GamePanel extends JPanel implements Runnable {
     public static final int WIDTH = 1100;
     public static final int HEIGHT = 800;
@@ -240,6 +241,10 @@ public class GamePanel extends JPanel implements Runnable {
 //            }
 //            System.out.println();
 //        }
+        for(int i = 0; i < 8; i++){
+            if(bestMove[i][7] == 'p') bestMove[i][7] = 'q';
+            if(bestMove[i][0] == 'P') bestMove[i][0] = 'Q';
+        }
         if (bestMove != null) {
             //System.out.println("Best Move: " + bestMoveValue);
             updateBoardWithBestMove(bestMove);
@@ -431,7 +436,9 @@ public class GamePanel extends JPanel implements Runnable {
                 }
             }
             else {
-                g2.drawString("Black's turn", 850, 250);
+                g2.drawString("Black's turn", 850, 150);
+                g2.drawString("Thinking", 850, 250);
+
                 if (checkingP != null && checkingP.color == WHITE) {
                     g2.drawString("The King", 840, 350);
                     g2.drawString("is in check!", 840, 450);

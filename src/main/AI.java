@@ -9,9 +9,101 @@ public class AI {
     private static final int DEPTH = 4;
     private Map<String, Integer> transpositionTable = new HashMap<>();
     GamePanel gp;
+    Boolean endGame = false;
+
+    int[][] pawmPoint ;
+
+    int[][] knightPoint ;
+
+    int[][] bishopPoint ;
+
+    int[][] rockPoint ;
+
+    int[][] queenPoint ;
+
+    int[][] kingMidPoint ;
+
+    int[][] kingEndPoint ;
 
     public AI(GamePanel gp) {
         this.gp = gp;
+        pawmPoint = new int[][]{
+                {900,   900,   900,   900,   900,   900,   900,   900},
+                {50, 50, 50, 50, 50, 50, 50, 50},
+                {10, 10, 20, 30, 30, 20, 10, 10},
+                {5,   5, 10, 25, 25, 10,  5,  5},
+                {0,   0,  0, 20, 20,  0,  0,  0},
+                {5,  -5, -10,  0,  0, -10, -5,  5},
+                {5,  10, 10, -20, -20, 10, 10,  5},
+                {0,   0,  0,   0,   0,   0,   0,  0}
+        };
+
+        knightPoint = new int[][]{
+                {-50, -40, -30, -30, -30, -30, -40, -50},
+                {-40, -20,   0,   0,   0,   0, -20, -40},
+                {-30,   0,  10,  15,  15,  10,   0, -30},
+                {-30,   5,  15,  20,  20,  15,   5, -30},
+                {-30,   0,  15,  20,  20,  15,   0, -30},
+                {-30,   5,  10,  15,  15,  10,   5, -30},
+                {-40, -20,   0,   5,   5,   0, -20, -40},
+                {-50, -40, -30, -30, -30, -30, -40, -50}
+        };
+
+        bishopPoint = new int[][]{
+                {-20, -10, -10, -10, -10, -10, -10, -20},
+                {-10,   0,   0,   0,   0,   0,   0, -10},
+                {-10,   0,   5,  10,  10,   5,   0, -10},
+                {-10,   5,   5,  10,  10,   5,   5, -10},
+                {-10,   0,  10,  10,  10,  10,   0, -10},
+                {-10,  10,  10,  10,  10,  10,  10, -10},
+                {-10,   5,   0,   0,   0,   0,   5, -10},
+                {-20, -10, -10, -10, -10, -10, -10, -20}
+        };
+
+        rockPoint = new int[][]{
+                { 0,  0,  0,  0,  0,  0,  0,  0},
+                { 5, 10, 10, 10, 10, 10, 10,  5},
+                {-5,  0,  0,  0,  0,  0,  0, -5},
+                {-5,  0,  0,  0,  0,  0,  0, -5},
+                {-5,  0,  0,  0,  0,  0,  0, -5},
+                {-5,  0,  0,  0,  0,  0,  0, -5},
+                {-5,  0,  0,  0,  0,  0,  0, -5},
+                { 0,  0,  0,  5,  5,  0,  0,  0}
+        };
+
+        queenPoint = new int[][]{
+                {-20, -10, -10,  -5,  -5, -10, -10, -20},
+                {-10,   0,    0,    0,    0,   0,    0, -10},
+                {-10,   0,    5,    5,    5,   5,    0, -10},
+                { -5,   0,    5,    5,    5,   5,    0,  -5},
+                {  0,   0,    5,    5,    5,   5,    0,  -5},
+                {-10,   5,    5,    5,    5,   5,    0, -10},
+                {-10,   0,    5,    0,    0,   0,    0, -10},
+                {-20, -10, -10,  -5,  -5, -10, -10, -20}
+        };
+
+        kingMidPoint = new int[][]{
+                {-30, -40, -40, -50, -50, -40, -40, -30},
+                {-30, -40, -40, -50, -50, -40, -40, -30},
+                {-30, -40, -40, -50, -50, -40, -40, -30},
+                {-30, -40, -40, -50, -50, -40, -40, -30},
+                {-20, -30, -30, -40, -40, -30, -30, -20},
+                {-10, -20, -20, -20, -20, -20, -20, -10},
+                { 20,  20,   0,   0,   0,   0,  20,  20},
+                { 20,  30,  10,   0,   0,  10,  30,  20}
+        };
+
+        kingEndPoint = new int[][]{
+                {-50, -40, -30, -20, -20, -30, -40, -50},
+                {-30, -20, -10,   0,   0, -10, -20, -30},
+                {-30, -10,  20,  30,  30,  20, -10, -30},
+                {-30, -10,  30,  40,  40,  30, -10, -30},
+                {-30, -10,  30,  40,  40,  30, -10, -30},
+                {-30, -10,  20,  30,  30,  20, -10, -30},
+                {-30, -30,   0,   0,   0,   0, -30, -30},
+                {-50, -30, -30, -30, -30, -30, -30, -50}
+        };
+
     }
 
     public int  alphaBetaMax(int alpha, int beta, int depth, char[][] board) {
@@ -98,11 +190,12 @@ public class AI {
 //        }
 
         int score = 0;
-        for (char[] row : board) {
-            for (char piece : row) {
-                score += getPieceValue(piece);
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                score += getPieceValue(board[i][j]) + calculatePosPoint(board[i][j], i, j);
             }
         }
+        if(score < 101800) endGame = true;
 
 //        System.out.println("Score: " + score);
         return score;
@@ -294,4 +387,25 @@ public class AI {
         //System.out.println("Added move: " + row + ", " + col + " to " + newRow + ", " + newCol);
     }
 
+    int calculatePosPoint(char c, int i, int j){
+        if(c == ' ') return 0;
+        if(c == 'r') return -rockPoint[7 - i][7 - j];
+        if(c == 'R') return rockPoint[i][j];
+        if(c == 'n') return -knightPoint[7 - i][7 - j];
+        if(c == 'N') return knightPoint[i][j];
+        if(c == 'b') return -bishopPoint[7 - i][7 - j];
+        if(c == 'B') return bishopPoint[i][j];
+        if(c == 'q') return -queenPoint[7 - i][7 - j];
+        if(c == 'Q') return queenPoint[i][j];
+        if(c == 'p') return -pawmPoint[7 - i][7 - j];
+        if(c == 'P') return pawmPoint[i][j];
+        if(endGame){
+            if(c == 'k') return -kingEndPoint[7 - i][7 - j];
+            if(c == 'K') return kingEndPoint[i][j];
+        } else {
+            if(c == 'k') return -kingMidPoint[7 - i][7 - j];
+            if(c == 'K') return kingMidPoint[i][j];
+        }
+        return 0;
+    }
 }
