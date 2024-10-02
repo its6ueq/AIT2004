@@ -8,11 +8,11 @@ public class Knight extends Piece {
         type = Type.KNIGHT;
         if (color == GamePanel.WHITE) {
             image = getImage("/piece/w-knight");
-            symbol = 'K';
+            symbol = 'N';
         }
         else {
             image = getImage("/piece/b-knight");
-            symbol = 'k';
+            symbol = 'n';
         }
     }
     public boolean canMove(int targetCol, int targetRow) {
