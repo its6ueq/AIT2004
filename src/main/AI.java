@@ -196,7 +196,7 @@ public class AI {
                  score += getPieceValue(board[i][j]) + calculatePosPoint(board[i][j], i, j);
             }
         }
-        if(score < 101800) endGame = true;
+        if(score > -101800 && score < 101800) endGame = true;
 
 //        System.out.println("Score: " + score);
         return score;
