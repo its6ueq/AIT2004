@@ -107,25 +107,7 @@ public class AI {
     }
 
     public int  alphaBetaMax(int alpha, int beta, int depth, char[][] board) {
-//        if (isGameOver(board)) {
-//            for (int i = 0; i < 8; i++) {
-//                for (int j = 0; j < 8; j++) {
-//                    System.out.print(board[i][j] + " ");
-//                }
-//                System.out.println();
-//            }
-//            System.out.println("Score: " + evaluateBoard(board));
-//            return evaluateBoard(board);
-//        }
-
-        if (depth == 0 || isGameOver(board)) {
-//            for (int i = 0; i < 8; i++) {
-//                for (int j = 0; j < 8; j++) {
-//                    System.out.print(board[i][j] + " ");
-//                }
-//                System.out.println();
-//            }
-//            System.out.println("Score: " + evaluateBoard(board));
+        if (depth == 0) {
             return evaluateBoard(board);
         }
 
@@ -143,17 +125,7 @@ public class AI {
     }
 
     public int  alphaBetaMin(int alpha, int beta, int depth, char[][] board) {
-//        if (isGameOver(board)) {
-//            for (int i = 0; i < 8; i++) {
-//                for (int j = 0; j < 8; j++) {
-//                    System.out.print(board[i][j] + " ");
-//                }
-//                System.out.println();
-//            }
-//            System.out.println("Score: " + evaluateBoard(board));
-//            return evaluateBoard(board);
-//        }
-        if (depth == 0 || isGameOver(board)) {
+        if (depth == 0) {
             return evaluateBoard(board);
         }
 
