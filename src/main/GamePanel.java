@@ -14,8 +14,8 @@ public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;
     Board board = new Board ();
     Mouse mouse = new Mouse ();
-
-    public static char[][] current_board = new char[8][8];
+    AI ai = new AI (this);
+    char[][] current_board = new char[8][8];
 
     public static ArrayList<Piece> pieces = new ArrayList<Piece> ();
     public static ArrayList<Piece> simPieces = new ArrayList<> ();
@@ -115,6 +115,10 @@ public class GamePanel extends JPanel implements Runnable {
             promoting();
         }
         else {
+            if (currentColor == BLACK) {
+                aiMove();
+                return;
+            }
             if(mouse.pressed){
                 //System.out.println ("mouse: " + mouse.x + " " + mouse.y);
                 if(activeP == null){
@@ -164,7 +168,7 @@ public class GamePanel extends JPanel implements Runnable {
     private void updateBoard(){
         for (int i = 0; i < 8; i++){
             for (int j = 0; j < 8; j++){
-                current_board[i][j] = '0';
+                current_board[i][j] = ' ';
             }
         }
         for (Piece p : pieces){
@@ -177,6 +181,71 @@ public class GamePanel extends JPanel implements Runnable {
             }
             System.out.println();
         }
+    }
+
+    private void updateBoardWithBestMove(char[][] bestMove) {
+        // Update the current_board array
+        current_board = bestMove;
+
+        // Clear the pieces list
+        pieces.clear();
+
+        // Iterate through the current_board array and update the pieces list
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                char pieceChar = current_board[row][col];
+                if (pieceChar != ' ') {
+                    Piece piece = createPieceFromChar(pieceChar, row, col);
+                    pieces.add(piece);
+                }
+            }
+        }
+        copyPieces(pieces, simPieces);
+
+//        System.out.println("Updated Pieces:");
+//        for (Piece piece : pieces) {
+//            System.out.println(piece);
+//        }
+        System.out.println("Current Value: " + ai.evaluateBoard(current_board));
+    }
+
+    private Piece createPieceFromChar(char pieceChar, int row, int col) {
+        int color = Character.isUpperCase(pieceChar) ? WHITE : BLACK;
+        switch (Character.toLowerCase(pieceChar)) {
+            case 'p': return new Pawn(color, col, row);
+            case 'r': return new Rook(color, col, row);
+            case 'n': return new Knight(color, col, row);
+            case 'b': return new Bishop(color, col, row);
+            case 'q': return new Queen(color, col, row);
+            case 'k': return new King(color, col, row);
+            default: throw new IllegalArgumentException("Invalid piece character: " + pieceChar);
+        }
+    }
+
+    private void aiMove() {
+        int bestMoveValue = Integer.MAX_VALUE;
+        char[][] bestMove = null;
+        for (char[][] move : ai.getAllPossibleMoves(current_board, false)) {
+            int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, 4, move);
+            System.out.println("Move Value: " + moveValue);
+            if (moveValue < bestMoveValue) {
+                bestMoveValue = moveValue;
+                bestMove = move;
+            }
+        }
+        System.out.println("Best Move Value: " + bestMoveValue);
+//        for (int i = 0; i < 8; i++){
+//            for (int j = 0; j < 8; j++){
+//                System.out.print(bestMove[i][j] + " ");
+//            }
+//            System.out.println();
+//        }
+        if (bestMove != null) {
+            //System.out.println("Best Move: " + bestMoveValue);
+            updateBoardWithBestMove(bestMove);
+            updateBoard();
+        }
+        changePlayer();
     }
 
     private void simulate(){
