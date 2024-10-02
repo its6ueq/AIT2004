@@ -14,9 +14,10 @@ public class Main {
         window.add(gp);
         window.pack();
 
+        System.out.println ("Created GamePanel successfully");
         window.setLocationRelativeTo (null);
         window.setVisible (true);
 
-        gp.launchGame ();
+        gp.launchGame();
     }
 }
