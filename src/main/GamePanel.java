@@ -242,8 +242,8 @@ public class GamePanel extends JPanel implements Runnable {
 //            System.out.println();
 //        }
         for(int i = 0; i < 8; i++){
-            if(bestMove[i][7] == 'p') bestMove[i][7] = 'q';
-            if(bestMove[i][0] == 'P') bestMove[i][0] = 'Q';
+            if(bestMove[7][i] == 'p') bestMove[7][i] = 'q';
+            if(bestMove[7][i] == 'P') bestMove[0][i] = 'Q';
         }
         if (bestMove != null) {
             //System.out.println("Best Move: " + bestMoveValue);

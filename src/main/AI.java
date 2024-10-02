@@ -192,7 +192,8 @@ public class AI {
         int score = 0;
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
-                score += getPieceValue(board[i][j]) + calculatePosPoint(board[i][j], i, j);
+
+                 score += getPieceValue(board[i][j]) + calculatePosPoint(board[i][j], i, j);
             }
         }
         if(score < 101800) endGame = true;
