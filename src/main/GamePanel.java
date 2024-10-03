@@ -7,6 +7,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 
+import static main.AI.*;
+
 
 public class GamePanel extends JPanel implements Runnable {
     public static final int WIDTH = 1100;
@@ -17,7 +19,7 @@ public class GamePanel extends JPanel implements Runnable {
     Mouse mouse = new Mouse ();
     AI ai = new AI (this);
     char[][] current_board = new char[8][8];
-
+    State state;
     public static ArrayList<Piece> pieces = new ArrayList<Piece> ();
     public static ArrayList<Piece> simPieces = new ArrayList<> ();
     ArrayList<Piece> promoPieces = new ArrayList<> ();
@@ -175,15 +177,15 @@ public class GamePanel extends JPanel implements Runnable {
         for (Piece p : pieces){
             current_board[p.row][p.col] = p.symbol;
         }
-
+        System.out.println ("=========================================");
         for (int i = 0; i < 8; i++){
             for (int j = 0; j < 8; j++){
                 System.out.print(current_board[i][j] + " ");
             }
             System.out.println();
         }
-
-        System.out.println ("=========================================");
+        state = new State(current_board);
+        state.setupState();
     }
 
     private void updateBoardWithBestMove(char[][] bestMove) {
@@ -250,9 +252,16 @@ public class GamePanel extends JPanel implements Runnable {
         if (bestMove != null) {
             //System.out.println("Best Move: " + bestMoveValue);
             updateBoardWithBestMove(bestMove);
+            checkCastled(bestMove);
             updateBoard();
         }
         changePlayer();
+    }
+
+    private void checkCastled(char[][] bestMove) {
+        if(bestMove[0][0] != 'r') rock1Moved = true;
+        if(bestMove[0][7] != 'r') rock2Moved = true;
+        if(bestMove[0][4] != 'k') kingMoved = true;
     }
 
     private void simulate(){

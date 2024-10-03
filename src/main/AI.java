@@ -10,6 +10,10 @@ public class AI {
     private Map<String, Integer> transpositionTable = new HashMap<>();
     GamePanel gp;
     Boolean endGame = false;
+    Boolean caslted = false;
+    public static Boolean kingMoved = false;
+    public static Boolean rock1Moved = false;
+    public static Boolean rock2Moved = false;
 
     int[][] pawmPoint ;
 
@@ -107,7 +111,25 @@ public class AI {
     }
 
     public int  alphaBetaMax(int alpha, int beta, int depth, char[][] board) {
-        if (depth == 0) {
+//        if (isGameOver(board)) {
+//            for (int i = 0; i < 8; i++) {
+//                for (int j = 0; j < 8; j++) {
+//                    System.out.print(board[i][j] + " ");
+//                }
+//                System.out.println();
+//            }
+//            System.out.println("Score: " + evaluateBoard(board));
+//            return evaluateBoard(board);
+//        }
+
+        if (depth == 0 || isGameOver(board)) {
+//            for (int i = 0; i < 8; i++) {
+//                for (int j = 0; j < 8; j++) {
+//                    System.out.print(board[i][j] + " ");
+//                }
+//                System.out.println();
+//            }
+//            System.out.println("Score: " + evaluateBoard(board));
             return evaluateBoard(board);
         }
 
@@ -125,7 +147,17 @@ public class AI {
     }
 
     public int  alphaBetaMin(int alpha, int beta, int depth, char[][] board) {
-        if (depth == 0) {
+//        if (isGameOver(board)) {
+//            for (int i = 0; i < 8; i++) {
+//                for (int j = 0; j < 8; j++) {
+//                    System.out.print(board[i][j] + " ");
+//                }
+//                System.out.println();
+//            }
+//            System.out.println("Score: " + evaluateBoard(board));
+//            return evaluateBoard(board);
+//        }
+        if (depth == 0 || isGameOver(board)) {
             return evaluateBoard(board);
         }
 
@@ -294,7 +326,8 @@ public class AI {
                 addMove(board, row, col, newRow, newCol, moves, isWhite);
             }
         }
-        // TODO: Castling
+
+        addCastle(board);
     }
 
     private void generateSlidingMoves(char[][] board, int row, int col, char piece,
@@ -380,5 +413,17 @@ public class AI {
             if(c == 'K') return kingMidPoint[i][j];
         }
         return 0;
+    }
+
+    private void addCastle(char[][] board){
+        char[][] newBoard1 = new char[8][8];
+        char[][] newBoard2 = new char[8][8];
+
+        for (int i = 0; i < 8; i++) {
+            System.arraycopy(board[i], 0, newBoard1[i], 0, 8);
+            System.arraycopy(board[i], 0, newBoard2[i], 0, 8);
+        }
+
+        
     }
 }
