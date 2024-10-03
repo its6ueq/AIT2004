@@ -86,6 +86,8 @@ public class GamePanel extends JPanel implements Runnable {
         pieces.add (new King (BLACK, 4, 0));
 
         updateBoard();
+        state = new State(current_board);
+        state.setupState();
     }
 
     private void copyPieces(ArrayList<Piece> source, ArrayList<Piece> target){
@@ -178,14 +180,12 @@ public class GamePanel extends JPanel implements Runnable {
             current_board[p.row][p.col] = p.symbol;
         }
         System.out.println ("=========================================");
-        for (int i = 0; i < 8; i++){
-            for (int j = 0; j < 8; j++){
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
                 System.out.print(current_board[i][j] + " ");
             }
             System.out.println();
         }
-        state = new State(current_board);
-        state.setupState();
     }
 
     private void updateBoardWithBestMove(char[][] bestMove) {
@@ -211,7 +211,7 @@ public class GamePanel extends JPanel implements Runnable {
 //        for (Piece piece : pieces) {
 //            System.out.println(piece);
 //        }
-        System.out.println("Current Value: " + ai.evaluateBoard(current_board));
+        System.out.println("Current Value: " + ai.evaluateBoard(state));
     }
 
     private Piece createPieceFromChar(char pieceChar, int row, int col) {
@@ -229,8 +229,11 @@ public class GamePanel extends JPanel implements Runnable {
 
     private void aiMove() {
         int bestMoveValue = Integer.MAX_VALUE;
-        char[][] bestMove = null;
-        for (char[][] move : ai.getAllPossibleMoves(current_board, false)) {
+        State bestMove = null;
+
+        State state = new State(current_board);
+        state.setupState();
+        for (State move : ai.getAllPossibleMoves(state, false)) {
             int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, 4, move);
             System.out.println("Move Value: " + moveValue);
             if (moveValue < bestMoveValue) {
@@ -245,14 +248,11 @@ public class GamePanel extends JPanel implements Runnable {
 //            }
 //            System.out.println();
 //        }
-        for(int i = 0; i < 8; i++){
-            if(bestMove[7][i] == 'p') bestMove[7][i] = 'q';
-            if(bestMove[7][i] == 'P') bestMove[0][i] = 'Q';
-        }
+        bestMove.queening();
         if (bestMove != null) {
             //System.out.println("Best Move: " + bestMoveValue);
-            updateBoardWithBestMove(bestMove);
-            checkCastled(bestMove);
+            updateBoardWithBestMove(bestMove.getBoard());
+            checkCastled(bestMove.getBoard());
             updateBoard();
         }
         changePlayer();
