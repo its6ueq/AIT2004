@@ -27,7 +27,7 @@ public class Pawn extends Piece {
             if (targetCol == preCol && targetRow == preRow + moveValue && hittingP == null) {
                 return true;
             }
-            if (!moved && targetCol == preCol && targetRow == preRow + moveValue * 2 && hittingP == null && !pieceIsOnStraightLine(targetCol, targetRow)) {
+            if (((preRow == 1 && color == GamePanel.BLACK) || (preRow == 6 && color == GamePanel.WHITE)) && targetCol == preCol && targetRow == preRow + moveValue * 2 && hittingP == null && !pieceIsOnStraightLine(targetCol, targetRow)) {
                 return true;
             }
             if (Math.abs(targetCol - preCol) == 1 && targetRow == preRow + moveValue && hittingP != null && hittingP.color != color) {
