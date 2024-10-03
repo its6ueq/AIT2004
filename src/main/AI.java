@@ -12,13 +12,14 @@ public class AI {
     Boolean endGame = false;
     Boolean caslted = false;
 
-    State state;
+    public static int a = 0;
+
 
     public static Boolean kingMoved = false;
     public static Boolean rock1Moved = false;
     public static Boolean rock2Moved = false;
 
-    int[][] pawmPoint ;
+    int[][] pawnPoint ;
 
     int[][] knightPoint ;
 
@@ -34,7 +35,7 @@ public class AI {
 
     public AI(GamePanel gp) {
         this.gp = gp;
-        pawmPoint = new int[][]{
+        pawnPoint = new int[][]{
                 {900,900,900,900,900,900,900,900},
                 { 50, 50, 50, 50, 50, 50, 50, 50},
                 { 10, 10, 20, 30, 30, 20, 10, 10},
@@ -278,16 +279,15 @@ public class AI {
     }
 
     private void generatePawnMoves(State prevState, int row, int col, char piece, List<State> moves) {
-        char[][] board = prevState.getBoard();
         int direction = Character.isUpperCase(piece) ? -1 : 1;
         int startRow = Character.isUpperCase(piece) ? 6 : 1;
 
         // Move forward
-        if (isWithinBoard(row + direction, col) && board[row + direction][col] == ' ') {
+        if (isWithinBoard(row + direction, col) && prevState.getIndex(row + direction, col) == ' ') {
             addMove(prevState, row, col, row + direction, col, moves, Character.isUpperCase(piece));
 
             // Double move from starting position
-            if (row == startRow && board[row + 2 * direction][col] == ' ') {
+            if (row == startRow && prevState.getIndex(row + 2 * direction, col) == ' ') {
                 addMove(prevState, row, col, row + 2 * direction, col, moves, Character.isUpperCase(piece));
             }
         }
@@ -295,7 +295,7 @@ public class AI {
         // Capture diagonally
         for (int i = -1; i <= 1; i += 2) {
             if (isWithinBoard(row + direction, col + i) &&
-                    isOpponentPiece(board[row + direction][col + i], piece)) {
+                    isOpponentPiece(prevState.getIndex(row + direction, col + i), piece)) {
                 addMove(prevState, row, col, row + direction, col + i, moves, Character.isUpperCase(piece));
             }
         }
@@ -315,25 +315,21 @@ public class AI {
     }
 
     private void generateBishopMoves(State prevState, int row, int col, char piece, List<State> moves) {
-        char[][] board = prevState.getBoard();
         int[][] directions = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
         generateSlidingMoves(prevState, row, col, piece, moves, directions);
     }
 
     private void generateRookMoves(State prevState, int row, int col, char piece, List<State> moves) {
-        char[][] board = prevState.getBoard();
         int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
         generateSlidingMoves(prevState, row, col, piece, moves, directions);
     }
 
     private void generateQueenMoves(State prevState, int row, int col, char piece, List<State> moves) {
-        char[][] board = prevState.getBoard();
         generateBishopMoves(prevState, row, col, piece, moves);
         generateRookMoves(prevState, row, col, piece, moves);
     }
 
     private void generateKingMoves(State prevstate, int row, int col, char piece, List<State> currState) {
-        char[][] board = prevstate.getBoard();
         int[][] directions = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
         boolean isWhite = Character.isUpperCase(piece);
 
@@ -341,25 +337,23 @@ public class AI {
             int newRow = row + dir[0];
             int newCol = col + dir[1];
             if (isWithinBoard(newRow, newCol) &&
-                    (board[newRow][newCol] == ' ' || isOpponentPiece(board[newRow][newCol], piece))) {
+                    (prevstate.getIndex(newRow, newCol) == ' ' || isOpponentPiece(prevstate.getIndex(newRow, newCol), piece))) {
                 addMove(prevstate, row, col, newRow, newCol, currState, isWhite);
             }
         }
 
-        addCastle(board);
     }
 
     private void generateSlidingMoves(State prevState, int row, int col, char piece,
                                       List<State> moves, int[][] directions) {
-        char[][] board = prevState.getBoard();
         for (int[] dir : directions) {
             int newRow = row + dir[0];
             int newCol = col + dir[1];
             while (isWithinBoard(newRow, newCol)) {
-                if (board[newRow][newCol] == ' ') {
+                if (prevState.getIndex(newRow, newCol) == ' ') {
                     addMove(prevState, row, col, newRow, newCol, moves, Character.isUpperCase(piece));
                 } else {
-                    if (isOpponentPiece(board[newRow][newCol], piece)) {
+                    if (isOpponentPiece(prevState.getIndex(newRow, newCol), piece)) {
                         addMove(prevState, row, col, newRow, newCol, moves, Character.isUpperCase(piece));
                     }
                     break;
@@ -402,9 +396,13 @@ public class AI {
 
     private void addMove(State prevState, int row, int col, int newRow, int newCol, List<State>moves, boolean isWhite) {
 
-        State currState = new State(prevState, prevState.getWhiteChecked(), prevState.getBlackChecked(), row, col, newRow, newCol);
+        State currState = new State(prevState, row, col, newRow, newCol, isWhite);
 
-//        currState.printBoard();
+        if(a <= 5){
+            currState.printBoard();
+            a++;
+        }
+
 
 
         //state
@@ -418,7 +416,7 @@ public class AI {
         int check = (isWhite) ? 1 : 0;
 
         //if (gp.checkingP != null && gp.checkingP.color == check) return;
-        moves.add(currState);
+        if(currState.validState()) moves.add(currState);
         //System.out.println("Added move: " + row + ", " + col + " to " + newRow + ", " + newCol);
     }
 
@@ -432,8 +430,8 @@ public class AI {
         if(c == 'B') return bishopPoint[i][j];
         if(c == 'q') return -queenPoint[7 - i][7 - j];
         if(c == 'Q') return queenPoint[i][j];
-        if(c == 'p') return -pawmPoint[7 - i][7 - j];
-        if(c == 'P') return pawmPoint[i][j];
+        if(c == 'p') return -pawnPoint[7 - i][7 - j];
+        if(c == 'P') return pawnPoint[i][j];
         if(endGame){
             if(c == 'k') return -kingEndPoint[7 - i][7 - j];
             if(c == 'K') return kingEndPoint[i][j];

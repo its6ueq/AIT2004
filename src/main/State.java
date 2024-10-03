@@ -1,10 +1,7 @@
 package main;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
-import static main.GamePanel.*;
 import static main.GamePanel.WHITE;
 import static main.GamePanel.BLACK;
 
@@ -26,20 +23,14 @@ public class State {
         blackChecked = new int[8][8];
     }
 
-    public State (State prevState, int[][] prevWhiteChecked, int[][] prevBlackChecked, int row, int col, int newRow, int newCol){
+    public State (State prevState, int row, int col, int newRow, int newCol, Boolean isWhite){
         parent = prevState;
 
         board = new char[8][8];
         char[][] tempBoard = this.parent.getBoard();
+
         for(int i = 0; i < 8; i++){
             System.arraycopy(tempBoard[i], 0, board[i], 0, 8);
-        }
-
-
-        char[][] newBoard = new char[8][8];
-        char[][] board = prevState.getBoard();
-        for (int i = 0; i < 8; i++) {
-            System.arraycopy(board[i], 0, newBoard[i], 0, 8);
         }
 
 
@@ -47,22 +38,28 @@ public class State {
         this.WKingY = parent.WKingY;
         this.BKingX = parent.BKingX;
         this.BKingY = parent.BKingY;
-        this.color = parent.color;
-        this.whiteChecked = prevWhiteChecked;
-        this.blackChecked = prevBlackChecked;
+        if(isWhite){
+            this.color = WHITE;
+        } else {
+            this.color = BLACK;
+        }
+
+        this.whiteChecked = new int[8][8];
+        this.blackChecked = new int[8][8];
+
+        int[][] prevWhiteChecked = prevState.getWhiteChecked();
+        int[][] prevBlackChecked = prevState.getBlackChecked();
+
+        for(int i = 0; i < 8; i++){
+            System.arraycopy(prevWhiteChecked[i], 0, whiteChecked[i], 0, 8);
+            System.arraycopy(prevBlackChecked[i], 0, blackChecked[i], 0, 8);
+        }
+
 
         changeColor();
 
         updateBoard(row, col, newRow, newCol);
 
-        whiteChecked = new int[8][8];
-        blackChecked = new int[8][8];
-        for(int i = 0; i < 8; i++){
-            for(int j = 0; j < 8; j++){
-                System.arraycopy(prevWhiteChecked[i], 0, whiteChecked[i], 0, 8);
-                System.arraycopy(prevBlackChecked[j], 0, blackChecked[j], 0, 8);
-            }
-        }
     }
 
     private void updateBoard(int row, int col, int newRow, int newCol){
@@ -77,8 +74,51 @@ public class State {
             int y = col + dir[1];
             while (isWithinBoard(x, y)) {
                 if (board[x][y] != ' ') {
-                    if(board[x][y] == 'b' || board[x][y] == 'B' || board[x][y] == 'q' || board[x][y] == 'Q'){
-                        updateBishop.add(new Pair(x, y));
+                    if(board[x][y] == 'b' || board[x][y] == 'B'){
+                        updateBishop.add(new Pair<>(x, y));
+                    }
+                    if(board[x][y] == 'q' || board[x][y] == 'Q'){
+                        updateBishop.add(new Pair<>(x, y));
+                        updateRock.add(new Pair<>(x, y));
+                    }
+                    break;
+                }
+                x += dir[0];
+                y += dir[1];
+            }
+        }
+
+        for (int[] dir : bishopDirections) {
+            int x = newRow + dir[0];
+            int y = newCol + dir[1];
+            while (isWithinBoard(x, y)) {
+                if (board[x][y] != ' ') {
+                    if(board[x][y] == 'b' || board[x][y] == 'B'){
+                        updateBishop.add(new Pair<>(x, y));
+                    }
+                    if(board[x][y] == 'q' || board[x][y] == 'Q'){
+                        updateBishop.add(new Pair<>(x, y));
+                        updateRock.add(new Pair<>(x, y));
+                    }
+                    break;
+                }
+                x += dir[0];
+                y += dir[1];
+            }
+        }
+
+//        System.out.println("Bishop need to update: "+ updateBishop.size());
+        for (int[] dir : rockDirections) {
+            int x = row + dir[0];
+            int y = col + dir[1];
+            while (isWithinBoard(x, y)) {
+                if (board[x][y] != ' ') {
+                    if(board[x][y] == 'r' || board[x][y] == 'R'){
+                        updateRock.add(new Pair<>(x, y));
+                    }
+                    if(board[x][y] == 'q' || board[x][y] == 'Q'){
+                        updateBishop.add(new Pair<>(x, y));
+                        updateRock.add(new Pair<>(x, y));
                     }
                     break;
                 }
@@ -88,12 +128,16 @@ public class State {
         }
 
         for (int[] dir : rockDirections) {
-            int x = row + dir[0];
-            int y = col + dir[1];
+            int x = newRow + dir[0];
+            int y = newCol + dir[1];
             while (isWithinBoard(x, y)) {
                 if (board[x][y] != ' ') {
-                    if(board[x][y] == 'r' || board[x][y] == 'R' || board[x][y] == 'q' || board[x][y] == 'Q'){
-                        updateRock.add(new Pair(x, y));
+                    if(board[x][y] == 'r' || board[x][y] == 'R'){
+                        updateRock.add(new Pair<>(x, y));
+                    }
+                    if(board[x][y] == 'q' || board[x][y] == 'Q'){
+                        updateBishop.add(new Pair<>(x, y));
+                        updateRock.add(new Pair<>(x, y));
                     }
                     break;
                 }
@@ -103,26 +147,44 @@ public class State {
         }
 
         for(Pair<Integer, Integer> pair : updateBishop){
-            slidingMove(bishopDirections, row, col, color, -1);
+            slidingMove(bishopDirections, pair.getL(), pair.getR(), getColor(pair), -1);
+//            System.out.println(pair.getL() + " " + pair.getR());
         }
 
         for(Pair<Integer, Integer> pair : updateRock){
-            slidingMove(rockDirections, row, col, color, -1);
+            slidingMove(rockDirections, pair.getL(), pair.getR(), getColor(pair), -1);
         }
 
         filterPiece(board[row][col], board, row, col, newRow, newCol);
+
+        if(row == WKingX && col == WKingY) {
+            WKingX = newRow;
+            WKingY = newCol;
+        } else if (row == BKingX && col == BKingY) {
+            BKingX = newRow;
+            BKingY = newCol;
+        }
+
 
         board[newRow][newCol] = board[row][col];
         board[row][col] = ' ';
 
         for(Pair<Integer, Integer> pair : updateBishop){
-            slidingMove(bishopDirections, row, col, color, 1);
+            slidingMove(bishopDirections, pair.getL(), pair.getR(), getColor(pair), 1);
         }
 
         for(Pair<Integer, Integer> pair : updateRock){
-            slidingMove(rockDirections, row, col, color, 1);
+            slidingMove(rockDirections, pair.getL(), pair.getR(), getColor(pair), 1);
         }
 
+//        System.out.println("updateddd");
+
+    }
+
+    private int getColor(Pair<Integer, Integer> pair){
+        if(Character.isLowerCase(board[pair.getL()][pair.getR()]))
+            return BLACK;
+        return WHITE;
     }
 
     public void setupState(){
@@ -141,32 +203,32 @@ public class State {
             }
         }
 
-
-        System.out.println("Setup");
-        for(int i = 0; i < 8; i++){
-            for(int j = 0; j < 8; j++){
-                System.out.print(whiteChecked[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("Setup");
-        for(int i = 0; i < 8; i++){
-            for(int j = 0; j < 8; j++){
-                System.out.print(blackChecked[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println();
+//
+//        System.out.println("Setup");
+//        for(int i = 0; i < 8; i++){
+//            for(int j = 0; j < 8; j++){
+//                System.out.print(whiteChecked[i][j] + " ");
+//            }
+//            System.out.println();
+//        }
+//        System.out.println("Setup");
+//        for(int i = 0; i < 8; i++){
+//            for(int j = 0; j < 8; j++){
+//                System.out.print(blackChecked[i][j] + " ");
+//            }
+//            System.out.println();
+//        }
+//        System.out.println();
     }
 
     private void filterPiece(char c, char[][] prevBoard, int row, int col, int newRow, int newCol ){
 
         switch(c){
             case 'p':
-                updateCheckedByPamn(prevBoard, row, col, newRow, newCol, BLACK);
+                updateCheckedByPawn(prevBoard, row, col, newRow, newCol, BLACK);
                 break;
             case 'P':
-                updateCheckedByPamn(prevBoard, row, col, newRow, newCol, WHITE);
+                updateCheckedByPawn(prevBoard, row, col, newRow, newCol, WHITE);
                 break;
             case 'b':
                 updateCheckedByBishop(prevBoard, row, col, newRow, newCol, BLACK);
@@ -207,11 +269,19 @@ public class State {
 
     private void updateCheckedByPiece(int row, int col, int color, int add){
         if(!isWithinBoard(row, col)) return;
-        if(color == BLACK) blackChecked[row][col] += add;
-        else whiteChecked[row][col] += add;
+//        System.out.println("aaa");
+        if(color == BLACK) this.blackChecked[row][col] += add;
+        else this.whiteChecked[row][col] += add;
+//
+//        System.out.println("updated piece " + row + " " + col + " " + add);
+//        if(color == WHITE) System.out.println("WHITE");
+//        printBoard();
+//        if(this.blackChecked[row][col] < 0 || this.whiteChecked[row][col] < 0) System.exit(0);
+
     }
 
-    private void updateCheckedByPamn(char[][] prevBoard, int row, int col, int newRow, int newCol, int color){
+    private void updateCheckedByPawn(char[][] prevBoard, int row, int col, int newRow, int newCol, int color){
+//        System.out.println("Pawn");
         int step;
         if(color == BLACK) step = 1;
         else step = -1;
@@ -224,6 +294,7 @@ public class State {
     }
 
     private void updateCheckedByKnight(char[][] prevBoard, int row, int col, int newRow, int newCol, int color){
+//        System.out.println("Knight");
         int[][] knightMoves = {{-2, -1}, {-2, 1}, {-1, -2}, {-1, 2}, {1, -2}, {1, 2}, {2, -1}, {2, 1}};
         if(prevBoard != null) {
             for (int[] move : knightMoves) {
@@ -242,6 +313,7 @@ public class State {
     }
 
     private void updateCheckedByBishop(char[][] prevBoard, int row, int col, int newRow, int newCol, int color){
+//        System.out.println("Bishop");
         int[][] directions = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
         if(prevBoard != null) {
             slidingMove(directions, row, col, color, -1);
@@ -250,6 +322,7 @@ public class State {
     }
 
     private void updateCheckedByRock(char[][] prevBoard, int row, int col, int newRow, int newCol, int color){
+//        System.out.println("Rock");
         int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
         if(prevBoard != null) {
             slidingMove(directions, row, col, color, -1);
@@ -258,11 +331,16 @@ public class State {
     }
 
     private void updateCheckedByQueen(char[][] prevBoard, int row, int col, int newRow, int newCol, int color){
-        updateCheckedByRock(prevBoard, row, col, newRow, newCol, color);
-        updateCheckedByBishop(prevBoard, row, col, newRow, newCol, color);
+//        System.out.println("Queen");
+        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+        if(prevBoard != null) {
+            slidingMove(directions, row, col, color, -1);
+        }
+        slidingMove(directions, newRow, newCol, color, 1);
     }
 
     private void updateCheckedByKing(char[][] prevBoard, int row, int col, int newRow, int newCol, int color){
+//        System.out.println("King");
         int[][] kingMoves = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}, {0, -1}, {0, 1}, {1, 0}, {-1, 0}};
         if(prevBoard != null) {
             for (int[] move : kingMoves) {
@@ -281,6 +359,7 @@ public class State {
     }
 
     private void slidingMove(int[][] directions, int row, int col, int color, int add){
+//        System.out.println("sliding");
         for (int[] dir : directions) {
             int x = row + dir[0];
             int y = col + dir[1];
@@ -321,37 +400,46 @@ public class State {
 
     public void changeColor(){
         if(this.color == WHITE) this.color = BLACK;
-        else this.color = BLACK;
+        else this.color = WHITE;
     }
 
+    public boolean validState(){
+
+//        if(color == BLACK && whiteChecked[BKingX][BKingY] != 0) return false;
+//        if(color == WHITE && blackChecked[WKingX][WKingY] != 0) return false;
+        return true;
+    }
+
+
     public void printBoard() {
+        System.out.println(color == 1 ? "Black" : "White");
+        System.out.println(whiteChecked[BKingX][BKingY]);
+        System.out.println("Whiteking: " + WKingX + " " + WKingY);
+        System.out.println("Blackking: " + BKingX + " " + BKingY);
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                System.out.print(this.board[i][j] + " ");
+                if(this.board[i][j] == ' ')
+                    System.out.print("_ ");
+                    else System.out.print(this.board[i][j] + " ");
             }
+            System.out.print("        ");
+            for (int j = 0; j < 8; j++) {
+                if(this.blackChecked[i][j] == 0)
+                    System.out.print("_ ");
+                else System.out.print(this.blackChecked[i][j] + " ");
+            }
+            System.out.print("        ");for (int j = 0; j < 8; j++) {
+                if(this.whiteChecked[i][j] == 0)
+                    System.out.print("_ ");
+                else System.out.print(this.whiteChecked[i][j] + " ");
+            }
+            System.out.print("        ");
+
             System.out.println();
         }
         System.out.println();
         System.out.println("=========================================");
         System.out.println();
 
-    }
-
-    public void printChecked() {
-        System.out.println("Setup");
-        for(int i = 0; i < 8; i++){
-            for(int j = 0; j < 8; j++){
-                System.out.print(whiteChecked[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("Setup");
-        for(int i = 0; i < 8; i++){
-            for(int j = 0; j < 8; j++){
-                System.out.print(blackChecked[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println();
     }
 }
