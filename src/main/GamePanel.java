@@ -175,13 +175,15 @@ public class GamePanel extends JPanel implements Runnable {
         for (Piece p : pieces){
             current_board[p.row][p.col] = p.symbol;
         }
-        System.out.println ("=========================================");
+
         for (int i = 0; i < 8; i++){
             for (int j = 0; j < 8; j++){
                 System.out.print(current_board[i][j] + " ");
             }
             System.out.println();
         }
+
+        System.out.println ("=========================================");
     }
 
     private void updateBoardWithBestMove(char[][] bestMove) {
