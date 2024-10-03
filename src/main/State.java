@@ -1,18 +1,60 @@
 package main;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import static main.GamePanel.*;
+import static main.GamePanel.WHITE;
+import static main.GamePanel.BLACK;
 
 public class State {
     char[][] board;
     int[][] blackChecked;
     int[][] whiteChecked;
+
+    int color;
+    int WKingX, WKingY;
+    int BKingX, BKingY;
+
+    State parent;
+    ArrayList<State> children;
+
     public State(char[][] board) {
         this.board = board;
         whiteChecked = new int[8][8];
         blackChecked = new int[8][8];
     }
 
-    public State (char[][] prevBoard, int[][] prevWhiteChecked, int[][] prevBlackChecked, int row, int col, int newRow, int newCol){
+    public State (State prevState, int[][] prevWhiteChecked, int[][] prevBlackChecked, int row, int col, int newRow, int newCol){
+        parent = prevState;
+
+        board = new char[8][8];
+        char[][] tempBoard = this.parent.getBoard();
+        for(int i = 0; i < 8; i++){
+            System.arraycopy(tempBoard[i], 0, board[i], 0, 8);
+        }
+
+
+        char[][] newBoard = new char[8][8];
+        char[][] board = prevState.getBoard();
+        for (int i = 0; i < 8; i++) {
+            System.arraycopy(board[i], 0, newBoard[i], 0, 8);
+        }
+
+
+        this.WKingX = parent.WKingX;
+        this.WKingY = parent.WKingY;
+        this.BKingX = parent.BKingX;
+        this.BKingY = parent.BKingY;
+        this.color = parent.color;
+        this.whiteChecked = prevWhiteChecked;
+        this.blackChecked = prevBlackChecked;
+
+        changeColor();
+
+        updateBoard(row, col, newRow, newCol);
+
         whiteChecked = new int[8][8];
         blackChecked = new int[8][8];
         for(int i = 0; i < 8; i++){
@@ -23,13 +65,82 @@ public class State {
         }
     }
 
+    private void updateBoard(int row, int col, int newRow, int newCol){
+        int[][] bishopDirections = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+        int[][] rockDirections = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+
+        ArrayList<Pair<Integer, Integer>> updateBishop = new ArrayList<>();
+        ArrayList<Pair<Integer, Integer>> updateRock = new ArrayList<>();
+
+        for (int[] dir : bishopDirections) {
+            int x = row + dir[0];
+            int y = col + dir[1];
+            while (isWithinBoard(x, y)) {
+                if (board[x][y] != ' ') {
+                    if(board[x][y] == 'b' || board[x][y] == 'B' || board[x][y] == 'q' || board[x][y] == 'Q'){
+                        updateBishop.add(new Pair(x, y));
+                    }
+                    break;
+                }
+                x += dir[0];
+                y += dir[1];
+            }
+        }
+
+        for (int[] dir : rockDirections) {
+            int x = row + dir[0];
+            int y = col + dir[1];
+            while (isWithinBoard(x, y)) {
+                if (board[x][y] != ' ') {
+                    if(board[x][y] == 'r' || board[x][y] == 'R' || board[x][y] == 'q' || board[x][y] == 'Q'){
+                        updateRock.add(new Pair(x, y));
+                    }
+                    break;
+                }
+                x += dir[0];
+                y += dir[1];
+            }
+        }
+
+        for(Pair<Integer, Integer> pair : updateBishop){
+            slidingMove(bishopDirections, row, col, color, -1);
+        }
+
+        for(Pair<Integer, Integer> pair : updateRock){
+            slidingMove(rockDirections, row, col, color, -1);
+        }
+
+        filterPiece(board[row][col], board, row, col, newRow, newCol);
+
+        board[newRow][newCol] = board[row][col];
+        board[row][col] = ' ';
+
+        for(Pair<Integer, Integer> pair : updateBishop){
+            slidingMove(bishopDirections, row, col, color, 1);
+        }
+
+        for(Pair<Integer, Integer> pair : updateRock){
+            slidingMove(rockDirections, row, col, color, 1);
+        }
+
+    }
+
     public void setupState(){
+        color = WHITE;
         this.whiteChecked = new int[board.length][board[0].length];
         for(int i = 0; i < board.length; i++){
             for(int j = 0; j < board[0].length; j++){
                 filterPiece(board[i][j], null, 0, 0, i, j);
+                if(board[i][j] == 'k'){
+                    BKingX = i;
+                    BKingY = j;
+                } else if (board[i][j] == 'K'){
+                    WKingX = i;
+                    WKingY = j;
+                }
             }
         }
+
 
         System.out.println("Setup");
         for(int i = 0; i < 8; i++){
@@ -49,42 +160,43 @@ public class State {
     }
 
     private void filterPiece(char c, char[][] prevBoard, int row, int col, int newRow, int newCol ){
+
         switch(c){
             case 'p':
-                updateCheckedByPamn(null, 0, 0, newRow, newCol, BLACK);
+                updateCheckedByPamn(prevBoard, row, col, newRow, newCol, BLACK);
                 break;
             case 'P':
-                updateCheckedByPamn(null, 0, 0, newRow, newCol, WHITE);
+                updateCheckedByPamn(prevBoard, row, col, newRow, newCol, WHITE);
                 break;
             case 'b':
-                updateCheckedByBishop(null, 0, 0, newRow, newCol, BLACK);
+                updateCheckedByBishop(prevBoard, row, col, newRow, newCol, BLACK);
                 break;
             case 'B':
-                updateCheckedByBishop(null, 0, 0, newRow, newCol, WHITE);
+                updateCheckedByBishop(prevBoard, row, col, newRow, newCol, WHITE);
                 break;
             case 'n':
-                updateCheckedByKnight(null, 0, 0, newRow, newCol, BLACK);
+                updateCheckedByKnight(prevBoard, row, col, newRow, newCol, BLACK);
                 break;
             case 'N':
-                updateCheckedByKnight(null, 0, 0, newRow, newCol, WHITE);
+                updateCheckedByKnight(prevBoard, row, col, newRow, newCol, WHITE);
                 break;
             case 'r':
-                updateCheckedByRock(null, 0, 0, newRow, newCol, BLACK);
+                updateCheckedByRock(prevBoard, row, col, newRow, newCol, BLACK);
                 break;
             case 'R':
-                updateCheckedByRock(null, 0, 0, newRow, newCol, WHITE);
+                updateCheckedByRock(prevBoard, row, col, newRow, newCol, WHITE);
                 break;
             case 'q':
-                updateCheckedByQueen(null, 0, 0, newRow, newCol, BLACK);
+                updateCheckedByQueen(prevBoard, row, col, newRow, newCol, BLACK);
                 break;
             case 'Q':
-                updateCheckedByQueen(null, 0, 0, newRow, newCol, WHITE);
+                updateCheckedByQueen(prevBoard, row, col, newRow, newCol, WHITE);
                 break;
             case 'k':
-                updateCheckedByKing(null, 0, 0, newRow, newCol, BLACK);
+                updateCheckedByKing(prevBoard, row, col, newRow, newCol, BLACK);
                 break;
             case 'K':
-                updateCheckedByKing(null, 0, 0, newRow, newCol, WHITE);
+                updateCheckedByKing(prevBoard, row, col, newRow, newCol, WHITE);
                 break;
         }
     }
@@ -173,7 +285,7 @@ public class State {
             int x = row + dir[0];
             int y = col + dir[1];
             while (isWithinBoard(x, y)) {
-                System.out.println(dir[0] + " " + dir[1] + " " + x + " " + y + " " + color);
+//                System.out.println(dir[0] + " " + dir[1] + " " + x + " " + y + " " + color);
                 updateCheckedByPiece(x, y, color, add);
                 if (board[x][y] != ' ') {
                     break;
@@ -182,5 +294,64 @@ public class State {
                 y += dir[1];
             }
         }
+    }
+
+    public char[][] getBoard(){
+        return this.board;
+    }
+
+    public char getIndex(int i, int j){
+        return this.board[i][j];
+    }
+
+    public int[][] getWhiteChecked(){
+        return this.whiteChecked;
+    }
+
+    public int[][] getBlackChecked(){
+        return this.blackChecked;
+    }
+
+    public void queening(){
+        for(int i = 0; i < 8; i++){
+            if(board[7][i] == 'p') board[7][i] = 'q';
+            if(board[7][i] == 'P') board[0][i] = 'Q';
+        }
+    }
+
+    public void changeColor(){
+        if(this.color == WHITE) this.color = BLACK;
+        else this.color = BLACK;
+    }
+
+    public void printBoard() {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                System.out.print(this.board[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println();
+        System.out.println("=========================================");
+        System.out.println();
+
+    }
+
+    public void printChecked() {
+        System.out.println("Setup");
+        for(int i = 0; i < 8; i++){
+            for(int j = 0; j < 8; j++){
+                System.out.print(whiteChecked[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("Setup");
+        for(int i = 0; i < 8; i++){
+            for(int j = 0; j < 8; j++){
+                System.out.print(blackChecked[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println();
     }
 }
