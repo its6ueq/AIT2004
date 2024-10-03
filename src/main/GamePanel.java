@@ -240,6 +240,7 @@ public class GamePanel extends JPanel implements Runnable {
                 bestMoveValue = moveValue;
                 bestMove = move;
             }
+            bestMove.printBoard();
         }
         System.out.println("Best Move Value: " + bestMoveValue);
 //        for (int i = 0; i < 8; i++){
