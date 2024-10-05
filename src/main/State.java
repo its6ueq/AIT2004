@@ -19,10 +19,112 @@ public class State {
     State parent;
     ArrayList<State> children;
 
+    Boolean castled;
+    Boolean kingMoved;
+    Boolean rook1Moved;
+    Boolean rook2Moved;
+
+    int score;
+    Boolean endGame;
+
+    public static int[][] pawnPoint ;
+    public static int[][] knightPoint ;
+    public static int[][] bishopPoint ;
+    public static int[][] rookPoint;
+    public static int[][] queenPoint ;
+    public static int[][] kingMidPoint ;
+    public static int[][] kingEndPoint ;
+
+
     public State(char[][] board) {
         this.board = board;
         whiteChecked = new int[8][8];
         blackChecked = new int[8][8];
+
+        castled = false;
+        kingMoved = false;
+        rook1Moved = false;
+        rook2Moved = false;
+        score = 0;
+        endGame = false;
+
+        pawnPoint = new int[][]{
+                {900,900,900,900,900,900,900,900},
+                { 50, 50, 50, 50, 50, 50, 50, 50},
+                { 10, 10, 20, 30, 30, 20, 10, 10},
+                {  5,  5, 10, 25, 25, 10,  5,  5},
+                {  0,  0,  0, 20, 20,  0,  0,  0},
+                {  5, -5,-10,  0,  0,-10, -5,  5},
+                {  5, 10, 10,-20,-20, 10, 10,  5},
+                {  0,  0,  0,  0,  0,  0,  0,  0}
+        };
+
+        knightPoint = new int[][]{
+                {-50, -40, -30, -30, -30, -30, -40, -50},
+                {-40, -20,   0,   0,   0,   0, -20, -40},
+                {-30,   0,  10,  15,  15,  10,   0, -30},
+                {-30,   5,  15,  20,  20,  15,   5, -30},
+                {-30,   0,  15,  20,  20,  15,   0, -30},
+                {-30,   5,  10,  15,  15,  10,   5, -30},
+                {-40, -20,   0,   5,   5,   0, -20, -40},
+                {-50, -40, -30, -30, -30, -30, -40, -50}
+        };
+
+        bishopPoint = new int[][]{
+                {-20, -10, -10, -10, -10, -10, -10, -20},
+                {-10,   0,   0,   0,   0,   0,   0, -10},
+                {-10,   0,   5,  10,  10,   5,   0, -10},
+                {-10,   5,   5,  10,  10,   5,   5, -10},
+                {-10,   0,  10,  10,  10,  10,   0, -10},
+                {-10,  10,  10,  10,  10,  10,  10, -10},
+                {-10,   5,   0,   0,   0,   0,   5, -10},
+                {-20, -10, -10, -10, -10, -10, -10, -20}
+        };
+
+        rookPoint = new int[][]{
+                { 0,  0,  0,  0,  0,  0,  0,  0},
+                { 5, 10, 10, 10, 10, 10, 10,  5},
+                {-5,  0,  0,  0,  0,  0,  0, -5},
+                {-5,  0,  0,  0,  0,  0,  0, -5},
+                {-5,  0,  0,  0,  0,  0,  0, -5},
+                {-5,  0,  0,  0,  0,  0,  0, -5},
+                {-5,  0,  0,  0,  0,  0,  0, -5},
+                { 0,  0,  0,  5,  5,  0,  0,  0}
+        };
+
+        queenPoint = new int[][]{
+                {-20, -10, -10,  -5,  -5,-10, -10, -20},
+                {-10,   0,   0,   0,   0,  0,   0, -10},
+                {-10,   0,   5,   5,   5,  5,   0, -10},
+                { -5,   0,   5,   5,   5,  5,   0,  -5},
+                {  0,   0,   5,   5,   5,  5,   0,  -5},
+                {-10,   5,   5,   5,   5,  5,   0, -10},
+                {-10,   0,   5,   0,   0,  0,   0, -10},
+                {-20, -10, -10,  -5,  -5, -10,-10, -20}
+        };
+
+        kingMidPoint = new int[][]{
+                {-30, -40, -40, -50, -50, -40, -40, -30},
+                {-30, -40, -40, -50, -50, -40, -40, -30},
+                {-30, -40, -40, -50, -50, -40, -40, -30},
+                {-30, -40, -40, -50, -50, -40, -40, -30},
+                {-20, -30, -30, -40, -40, -30, -30, -20},
+                {-10, -20, -20, -20, -20, -20, -20, -10},
+                { 20,  20,   0,   0,   0,   0,  20,  20},
+                { 20,  30,  10,   0,   0,  10,  30,  20}
+        };
+
+        kingEndPoint = new int[][]{
+                {-50, -40, -30, -20, -20, -30, -40, -50},
+                {-30, -20, -10,   0,   0, -10, -20, -30},
+                {-30, -10,  20,  30,  30,  20, -10, -30},
+                {-30, -10,  30,  40,  40,  30, -10, -30},
+                {-30, -10,  30,  40,  40,  30, -10, -30},
+                {-30, -10,  20,  30,  30,  20, -10, -30},
+                {-30, -30,   0,   0,   0,   0, -30, -30},
+                {-50, -30, -30, -30, -30, -30, -30, -50}
+        };
+
     }
 
     public State (State prevState, int row, int col, int newRow, int newCol, Boolean isWhite){
@@ -49,6 +151,14 @@ public class State {
             this.color = BLACK;
         }
 
+        //castle
+        this.score = parent.score;
+        this.castled = parent.castled;
+        this.kingMoved = parent.kingMoved;
+        this.rook1Moved = parent.rook1Moved;
+        this.rook2Moved = parent.rook2Moved;
+        this.endGame = parent.endGame;
+
         //copy white and black checked
         this.whiteChecked = new int[8][8];
         this.blackChecked = new int[8][8];
@@ -61,9 +171,30 @@ public class State {
             System.arraycopy(prevBlackChecked[i], 0, blackChecked[i], 0, 8);
         }
 
+        updateScore(row, col, newRow, newCol);
+
         //update white and black checked
         updateBoard(row, col, newRow, newCol);
 
+        checkCastled();
+
+//        printBoard();
+    }
+
+    private void updateScore(int row, int col, int newRow, int newCol){
+        score -= calculatePosPoint(board[newRow][newCol], newRow, newCol);
+        score -= calculatePosPoint(board[row][col], row, col);
+        score += calculatePosPoint(board[row][col], newRow, newCol);
+        score -= getPieceValue(board[newCol][newRow]);
+
+        if(score > -101800 && score < 101800) endGame = true;
+    }
+
+
+    private void checkCastled() {
+        if(board[0][0] != 'r') rook1Moved = true;
+        if(board[0][7] != 'r') rook2Moved = true;
+        if(board[0][4] != 'k') kingMoved = true;
     }
 
     private void updateBoard(int row, int col, int newRow, int newCol){
@@ -229,6 +360,16 @@ public class State {
                 }
             }
         }
+
+        score = 0;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+//                System.out.println(score + " " + i + " " + j + " " + board[i][j]);
+                score += getPieceValue(board[i][j]);
+            }
+        }
+//        System.out.println("Score: " + score);
+//        printBoard();
 
 //
 //        System.out.println("Setup");
@@ -412,6 +553,10 @@ public class State {
         }
     }
 
+    public int getScore(){
+        return this.score;
+    }
+
     public boolean validState(){
 
         if(color == BLACK && whiteChecked[BKingX][BKingY] != 0) return false;
@@ -419,12 +564,53 @@ public class State {
         return true;
     }
 
+    int calculatePosPoint(char c, int i, int j){
+        if(c == ' ') return 0;
+        if(c == 'r') return -rookPoint[7 - i][7 - j];
+        if(c == 'R') return rookPoint[i][j];
+        if(c == 'n') return -knightPoint[7 - i][7 - j];
+        if(c == 'N') return knightPoint[i][j];
+        if(c == 'b') return -bishopPoint[7 - i][7 - j];
+        if(c == 'B') return bishopPoint[i][j];
+        if(c == 'q') return -queenPoint[7 - i][7 - j];
+        if(c == 'Q') return queenPoint[i][j];
+        if(c == 'p') return -pawnPoint[7 - i][7 - j];
+        if(c == 'P') return pawnPoint[i][j];
+        if(endGame){
+            if(c == 'k') return -kingEndPoint[7 - i][7 - j];
+            if(c == 'K') return kingEndPoint[i][j];
+        } else {
+            if(c == 'k') return -kingMidPoint[7 - i][7 - j];
+            if(c == 'K') return kingMidPoint[i][j];
+        }
+        return 0;
+    }
+
+    private int getPieceValue(char piece) {
+        return switch (piece) {
+            case 'p' -> -100;
+            case 'n' -> -320;
+            case 'b' -> -330;
+            case 'r' -> -500;
+            case 'q' -> -900;
+            case 'k' -> -100000;
+
+            case 'P' -> +100;
+            case 'N' -> +320;
+            case 'B' -> +330;
+            case 'R' -> +500;
+            case 'Q' -> +900;
+            case 'K' -> +100000;
+            default -> 0;
+        };
+    }
 
     public void printBoard() {
         System.out.println(color == 1 ? "Black" : "White");
         System.out.println(whiteChecked[BKingX][BKingY]);
         System.out.println("Whiteking: " + WKingX + " " + WKingY);
         System.out.println("Blackking: " + BKingX + " " + BKingY);
+        System.out.println("Score: " + score);
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 if(this.board[i][j] == ' ')
