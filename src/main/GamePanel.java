@@ -211,7 +211,7 @@ public class GamePanel extends JPanel implements Runnable {
 //        for (Piece piece : pieces) {
 //            System.out.println(piece);
 //        }
-        System.out.println("Current Value: " + ai.evaluateBoard(state));
+        System.out.println("Current Value: " + state.getScore());
     }
 
     private Piece createPieceFromChar(char pieceChar, int row, int col) {
@@ -253,17 +253,12 @@ public class GamePanel extends JPanel implements Runnable {
         if (bestMove != null) {
             //System.out.println("Best Move: " + bestMoveValue);
             updateBoardWithBestMove(bestMove.getBoard());
-            checkCastled(bestMove.getBoard());
             updateBoard();
         }
         changePlayer();
     }
 
-    private void checkCastled(char[][] bestMove) {
-        if(bestMove[0][0] != 'r') rook1Moved = true;
-        if(bestMove[0][7] != 'r') rook2Moved = true;
-        if(bestMove[0][4] != 'k') kingMoved = true;
-    }
+
 
     private void simulate(){
         canMove = false;
