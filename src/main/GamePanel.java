@@ -260,8 +260,8 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void checkCastled(char[][] bestMove) {
-        if(bestMove[0][0] != 'r') rock1Moved = true;
-        if(bestMove[0][7] != 'r') rock2Moved = true;
+        if(bestMove[0][0] != 'r') rook1Moved = true;
+        if(bestMove[0][7] != 'r') rook2Moved = true;
         if(bestMove[0][4] != 'k') kingMoved = true;
     }
 

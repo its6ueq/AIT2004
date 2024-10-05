@@ -16,8 +16,8 @@ public class AI {
 
 
     public static Boolean kingMoved = false;
-    public static Boolean rock1Moved = false;
-    public static Boolean rock2Moved = false;
+    public static Boolean rook1Moved = false;
+    public static Boolean rook2Moved = false;
 
     int[][] pawnPoint ;
 
@@ -25,7 +25,7 @@ public class AI {
 
     int[][] bishopPoint ;
 
-    int[][] rockPoint ;
+    int[][] rookPoint;
 
     int[][] queenPoint ;
 
@@ -68,7 +68,7 @@ public class AI {
                 {-20, -10, -10, -10, -10, -10, -10, -20}
         };
 
-        rockPoint = new int[][]{
+        rookPoint = new int[][]{
                 { 0,  0,  0,  0,  0,  0,  0,  0},
                 { 5, 10, 10, 10, 10, 10, 10,  5},
                 {-5,  0,  0,  0,  0,  0,  0, -5},
@@ -398,22 +398,22 @@ public class AI {
 
         State currState = new State(prevState, row, col, newRow, newCol, isWhite);
 
-        if(a <= 5){
-            currState.printBoard();
-            a++;
-        }
+//        if(a <= 5){
+//            currState.printBoard();
+//            a++;
+//        }
 
 
 
-        //state
-        char[][] newBoard = new char[8][8];
-        char[][] board = prevState.getBoard();
-        for (int i = 0; i < 8; i++) {
-            System.arraycopy(board[i], 0, newBoard[i], 0, 8);
-        }
-        newBoard[newRow][newCol] = newBoard[row][col];
-        newBoard[row][col] = ' ';
-        int check = (isWhite) ? 1 : 0;
+//        //state
+//        char[][] newBoard = new char[8][8];
+//        char[][] board = prevState.getBoard();
+//        for (int i = 0; i < 8; i++) {
+//            System.arraycopy(board[i], 0, newBoard[i], 0, 8);
+//        }
+//        newBoard[newRow][newCol] = newBoard[row][col];
+//        newBoard[row][col] = ' ';
+//        int check = (isWhite) ? 1 : 0;
 
         //if (gp.checkingP != null && gp.checkingP.color == check) return;
         if(currState.validState()) moves.add(currState);
@@ -422,8 +422,8 @@ public class AI {
 
     int calculatePosPoint(char c, int i, int j){
         if(c == ' ') return 0;
-        if(c == 'r') return -rockPoint[7 - i][7 - j];
-        if(c == 'R') return rockPoint[i][j];
+        if(c == 'r') return -rookPoint[7 - i][7 - j];
+        if(c == 'R') return rookPoint[i][j];
         if(c == 'n') return -knightPoint[7 - i][7 - j];
         if(c == 'N') return knightPoint[i][j];
         if(c == 'b') return -bishopPoint[7 - i][7 - j];
