@@ -133,6 +133,14 @@ public class AI {
             }
         }
 
+        if (isWhite){
+            State temp = new State (prevState.getBoard());
+            if(temp.addCastle(1))
+                possibleMoves.add(temp);
+            temp = new State (prevState.getBoard());
+            if(temp.addCastle(2))
+                possibleMoves.add(temp);
+        }
         return possibleMoves;
     }
 
