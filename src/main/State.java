@@ -228,7 +228,7 @@ public class State {
                 board[0][6] = 'k';
                 board[0][7] = ' ';
                 setupState();
-                score++;
+                score += 100;
                 return true;
             }
         }
