@@ -133,7 +133,7 @@ public class AI {
             }
         }
 
-        if (isWhite){
+        if (!isWhite){
             State temp = new State (prevState.getBoard());
             if(temp.addCastle(1))
                 possibleMoves.add(temp);
