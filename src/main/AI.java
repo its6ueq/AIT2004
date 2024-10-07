@@ -1,9 +1,6 @@
 package main;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static main.State.*;
 
@@ -46,7 +43,7 @@ public class AI {
         }
 
         int bestValue = Integer.MIN_VALUE;
-        List<State> possibleMoves = getAllPossibleMoves(currState, true);
+        Set<State> possibleMoves = getAllPossibleMoves(currState, true);
         for (State move : possibleMoves) {
             int score = alphaBetaMin(alpha, beta, depth - 1, move);
             bestValue = Math.max(bestValue, score);
@@ -80,7 +77,7 @@ public class AI {
         }
 
         int bestValue = Integer.MAX_VALUE;
-        List<State> possibleMoves = getAllPossibleMoves(currState, false);
+        Set<State> possibleMoves = getAllPossibleMoves(currState, false);
         for (State move : possibleMoves) {
             int score = alphaBetaMax(alpha, beta, depth - 1, move);
             bestValue = Math.min(bestValue, score);
@@ -120,8 +117,8 @@ public class AI {
 
 
 
-    public List<State> getAllPossibleMoves(State prevState, boolean isWhite) {
-        List<State> possibleMoves = new ArrayList<>();
+    public Set<State> getAllPossibleMoves(State prevState, boolean isWhite) {
+        Set<State> possibleMoves = new HashSet<>();
 
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
@@ -131,6 +128,7 @@ public class AI {
                     possibleMoves.addAll(generateMovesForPiece(prevState, i, j, piece));
                 }
             }
+
         }
 
         if (!isWhite){
