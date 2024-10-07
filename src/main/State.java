@@ -197,10 +197,54 @@ public class State {
         if(board[0][4] != 'k') kingMoved = true;
     }
 
+    public Boolean addCastle(int a){
+        if(a == 1){
+            if(!rook1Moved && !kingMoved && !castled){
+                for(int i = 1; i <= 3; i++){
+                    if(board[0][i] != ' ') return false;
+                }
+                for(int i = 2; i <= 4; i++){
+                    if(whiteChecked[0][i] != 0) return false;
+                }
+                board[0][0] = ' ';
+                board[0][2] = 'k';
+                board[0][3] = 'r';
+                board[0][4] = ' ';
+                castled = true;
+                setupState();
+                score += 100;
+                return true;
+            }
+        } else {
+            if(!rook2Moved && !kingMoved && !castled){
+                for(int i = 5; i <= 6; i++){
+                    if(board[0][i] != ' ') return false;
+                }
+                for(int i = 4; i <= 6; i++){
+                    if(whiteChecked[0][i] != 0) return false;
+                }
+                board[0][4] = ' ';
+                board[0][5] = 'r';
+                board[0][6] = 'k';
+                board[0][7] = ' ';
+                setupState();
+                score++;
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+
     private void updateBoard(int row, int col, int newRow, int newCol){
 //        System.out.println(1);
 //        if(row == 2 && col == 0 && newRow == 1 && newCol == 1)
 //            printBoard();
+
+        if(row == 0 && col == 0) rook1Moved = true;
+        if(row == 0 && col == 7) rook2Moved = true;
+        if(row == 0 && col == 4) kingMoved = true;
 
         Set<Pair<Integer, Integer>> updateBishop = new HashSet<>();
         Set<Pair<Integer, Integer>> updateRook = new HashSet<>();
