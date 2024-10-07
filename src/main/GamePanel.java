@@ -228,6 +228,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void aiMove() {
+        long startA = System.currentTimeMillis();
         int bestMoveValue = Integer.MAX_VALUE;
         State bestMove = null;
 
@@ -240,7 +241,7 @@ public class GamePanel extends JPanel implements Runnable {
                 bestMoveValue = moveValue;
                 bestMove = move;
             }
-            bestMove.printBoard();
+//            bestMove.printBoard();
         }
         System.out.println("Best Move Value: " + bestMoveValue);
 //        for (int i = 0; i < 8; i++){
@@ -256,6 +257,8 @@ public class GamePanel extends JPanel implements Runnable {
             updateBoard();
         }
         changePlayer();
+        long stopA = System.currentTimeMillis();
+        System.out.println("Thought time: " + (stopA - startA));
     }
 
 

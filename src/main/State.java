@@ -7,7 +7,7 @@ import java.util.Set;
 import static main.GamePanel.WHITE;
 import static main.GamePanel.BLACK;
 
-public class State {
+public class State  implements Comparable<State> {
     char[][] board;
     int[][] blackChecked;
     int[][] whiteChecked;
@@ -692,5 +692,10 @@ public class State {
                 if(blackChecked[i][j] < 0) System.exit(0);
             }
         }
+    }
+
+    @Override
+    public int compareTo(State o) {
+        return Integer.compare(this.score, o.score);
     }
 }
