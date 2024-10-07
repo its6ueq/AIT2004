@@ -185,7 +185,7 @@ public class State {
         score -= calculatePosPoint(board[newRow][newCol], newRow, newCol);
         score -= calculatePosPoint(board[row][col], row, col);
         score += calculatePosPoint(board[row][col], newRow, newCol);
-        score -= getPieceValue(board[newCol][newRow]);
+        score -= getPieceValue(board[newRow][newCol]);
 
         if(score > -101800 && score < 101800) endGame = true;
     }
