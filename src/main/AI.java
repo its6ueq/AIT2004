@@ -43,7 +43,7 @@ public class AI {
         }
 
         int bestValue = Integer.MIN_VALUE;
-        Set<State> possibleMoves = getAllPossibleMoves(currState, true);
+        List<State> possibleMoves = getAllPossibleMoves(currState, true);
         for (State move : possibleMoves) {
             int score = alphaBetaMin(alpha, beta, depth - 1, move);
             bestValue = Math.max(bestValue, score);
@@ -77,7 +77,7 @@ public class AI {
         }
 
         int bestValue = Integer.MAX_VALUE;
-        Set<State> possibleMoves = getAllPossibleMoves(currState, false);
+        List<State> possibleMoves = getAllPossibleMoves(currState, false);
         for (State move : possibleMoves) {
             int score = alphaBetaMax(alpha, beta, depth - 1, move);
             bestValue = Math.min(bestValue, score);
@@ -117,8 +117,8 @@ public class AI {
 
 
 
-    public Set<State> getAllPossibleMoves(State prevState, boolean isWhite) {
-        Set<State> possibleMoves = new HashSet<>();
+    public ArrayList<State> getAllPossibleMoves(State prevState, boolean isWhite) {
+        ArrayList<State> possibleMoves = new ArrayList<>();
 
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
@@ -139,6 +139,8 @@ public class AI {
             if(temp.addCastle(2))
                 possibleMoves.add(temp);
         }
+
+        Collections.sort(possibleMoves);
         return possibleMoves;
     }
 
