@@ -227,6 +227,7 @@ public class State {
                 board[0][5] = 'r';
                 board[0][6] = 'k';
                 board[0][7] = ' ';
+                castled = true;
                 setupState();
                 score += 100;
                 return true;
