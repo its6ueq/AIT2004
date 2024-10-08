@@ -29,6 +29,8 @@ public class GamePanel extends JPanel implements Runnable {
     public static final int BLACK = 1;
     int currentColor = WHITE;
 
+    long startA, stopA;
+
     boolean canMove;
     boolean validSquare;
     boolean promotion;
@@ -228,7 +230,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void aiMove() {
-        long startA = System.currentTimeMillis();
+        startA = System.currentTimeMillis();
         int bestMoveValue = Integer.MAX_VALUE;
         State bestMove = null;
 
@@ -257,8 +259,8 @@ public class GamePanel extends JPanel implements Runnable {
             updateBoard();
         }
         changePlayer();
-        long stopA = System.currentTimeMillis();
-        System.out.println("Thought time: " + (stopA - startA));
+        stopA = System.currentTimeMillis();
+
     }
 
 
@@ -440,6 +442,8 @@ public class GamePanel extends JPanel implements Runnable {
         else {
             if (currentColor == WHITE) {
                 g2.drawString("White's turn", 850, 250);
+                g2.drawString("Time: ", 825, 550);
+                g2.drawString(String.valueOf((double)(stopA - startA)/1000), 825, 650);
                 if (checkingP != null && checkingP.color == BLACK) {
                     g2.drawString("The King", 840, 350);
                     g2.drawString("is in check!", 840, 450);

@@ -125,6 +125,7 @@ public class State  implements Comparable<State> {
                 {-50, -30, -30, -30, -30, -30, -30, -50}
         };
 
+        checkCastled();
     }
 
     public State (State prevState, int row, int col, int newRow, int newCol, Boolean isWhite){
