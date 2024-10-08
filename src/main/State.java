@@ -200,7 +200,7 @@ public class State  implements Comparable<State> {
 
     public Boolean addCastle(int a){
         if(a == 1){
-            if(!rook1Moved && !kingMoved && !castled){
+            if(!rook1Moved && !kingMoved && !castled && board[0][0] == 'r' && board[0][4] == 'k'){
                 for(int i = 1; i <= 3; i++){
                     if(board[0][i] != ' ') return false;
                 }
@@ -219,7 +219,7 @@ public class State  implements Comparable<State> {
                 return true;
             }
         } else {
-            if(!rook2Moved && !kingMoved && !castled){
+            if(!rook2Moved && !kingMoved && !castled && board[0][7] == 'r' && board[0][4] == 'k'){
                 for(int i = 5; i <= 6; i++){
                     if(board[0][i] != ' ') return false;
                 }
