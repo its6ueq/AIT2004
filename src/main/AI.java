@@ -9,8 +9,6 @@ public class AI {
     private Map<String, Integer> transpositionTable = new HashMap<>();
     GamePanel gp;
 
-
-
     public static int a = 0;
 
 
@@ -19,133 +17,107 @@ public class AI {
     }
 
     public int  alphaBetaMax(int alpha, int beta, int depth, State currState) {
-//        System.out.println("alpha beta max");
-//        if (isGameOver(board)) {
-//            for (int i = 0; i < 8; i++) {
-//                for (int j = 0; j < 8; j++) {
-//                    System.out.print(board[i][j] + " ");
-//                }
-//                System.out.println();
-//            }
-//            System.out.println("Score: " + evaluateBoard(board));
-//            return evaluateBoard(board);
-//        }
 
         if (depth == 0) {
-//            for (int i = 0; i < 8; i++) {
-//                for (int j = 0; j < 8; j++) {
-//                    System.out.print(board[i][j] + " ");
-//                }
-//                System.out.println();
-//            }
-//            System.out.println("Score: " + evaluateBoard(board));
             return currState.getScore();
         }
 
         int bestValue = Integer.MIN_VALUE;
-        List<State> possibleMoves = getAllPossibleMoves(currState, true);
-        for (State move : possibleMoves) {
-            int score = alphaBetaMin(alpha, beta, depth - 1, move);
+        LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves = getAllPossibleMoves(currState);
+        for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : possibleMoves) {
+            char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
+            int tempScore = currState.score;
+            Boolean tempEndGame = currState.endGame;
+            Boolean tempCastled = currState.castled;
+            Boolean tempKingMoved = currState.kingMoved;
+            Boolean tempRook1Moved = currState.rook1Moved;
+            Boolean tempRook2Moved = currState.rook2Moved;
+
+            currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
+
+            int score = alphaBetaMin(alpha, beta, depth - 1, currState);
+
             bestValue = Math.max(bestValue, score);
             alpha = Math.max(alpha, score);
+
             if (beta <= alpha) {
                 break;
             }
+
+            currState.score = tempScore;
+            currState.endGame = tempEndGame;
+            currState.castled = tempCastled;
+            currState.kingMoved = tempKingMoved;
+            currState.rook1Moved = tempRook1Moved;
+            currState.rook2Moved = tempRook2Moved;
+
+            currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
         }
         return bestValue;
     }
 
     public int  alphaBetaMin(int alpha, int beta, int depth, State currState) {
-//        System.out.println("alpha beta min");
-//        System.out.println();
-//        System.out.println();
-//        System.out.println();
-//        System.out.println();
 
-//        if (isGameOver(board)) {
-//            for (int i = 0; i < 8; i++) {
-//                for (int j = 0; j < 8; j++) {
-//                    System.out.print(board[i][j] + " ");
-//                }
-//                System.out.println();
-//            }
-//            System.out.println("Score: " + evaluateBoard(board));
-//            return evaluateBoard(board);
-//        }
         if (depth == 0) {
             return currState.getScore();
         }
 
         int bestValue = Integer.MAX_VALUE;
-        List<State> possibleMoves = getAllPossibleMoves(currState, false);
-        for (State move : possibleMoves) {
-            int score = alphaBetaMax(alpha, beta, depth - 1, move);
+        LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves = getAllPossibleMoves(currState);
+        for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : possibleMoves) {
+            char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
+            int tempScore = currState.score;
+            Boolean tempEndGame = currState.endGame;
+            Boolean tempCastled = currState.castled;
+            Boolean tempKingMoved = currState.kingMoved;
+            Boolean tempRook1Moved = currState.rook1Moved;
+            Boolean tempRook2Moved = currState.rook2Moved;
+
+            currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
+
+            int score = alphaBetaMax(alpha, beta, depth - 1, currState);
             bestValue = Math.min(bestValue, score);
             beta = Math.min(beta, score);
             if (beta <= alpha) {
                 break;
             }
+
+            currState.score = tempScore;
+            currState.endGame = tempEndGame;
+            currState.castled = tempCastled;
+            currState.kingMoved = tempKingMoved;
+            currState.rook1Moved = tempRook1Moved;
+            currState.rook2Moved = tempRook2Moved;
+
+            currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
         }
         return bestValue;
     }
 
-    private String boardToString(char[][] board) {
-        StringBuilder sb = new StringBuilder();
-        for (char[] row : board) {
-            for (char piece : row) {
-                sb.append(piece);
-            }
-        }
-        return sb.toString();
-    }
-
-//    public int evaluateBoard(State prevState) {
-//        String boardString = boardToString(prevState.getBoard());
-////        for (int i = 0; i < 8; i++) {
-////            for (int j = 0; j < 8; j++) {
-////                System.out.print(board[i][j] + " ");
-////            }
-////            System.out.println();
-////        }
-//
-//
-//
-//
-////        System.out.println("Score: " + score);
-//        return score;
-//    }
 
 
-
-    public ArrayList<State> getAllPossibleMoves(State prevState, boolean isWhite) {
-        ArrayList<State> possibleMoves = new ArrayList<>();
+    public LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> getAllPossibleMoves(State prevState) {
+        Boolean isWhite = prevState.isWhite();
+        LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves = new LinkedList<>();
 
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 char piece = prevState.getIndex(i, j);
                 if (isWhite && Character.isUpperCase(piece) || !isWhite && Character.isLowerCase(piece)) {
                     //System.out.println("Generating moves for " + piece + " at " + i + ", " + j);
-                    possibleMoves.addAll(generateMovesForPiece(prevState, i, j, piece));
+                    if(piece == 'p' || piece == 'P') possibleMoves.addAll(generateMovesForPiece(prevState, i, j, piece));
+                    else possibleMoves.addAll(0, generateMovesForPiece(prevState, i, j, piece));
                 }
             }
 
         }
 
-        if (!isWhite){
-            State temp = new State (prevState.getBoard());
-            if(temp.addCastle(1))
-                possibleMoves.add(temp);
-            temp = new State (prevState.getBoard());
-            if(temp.addCastle(2))
-                possibleMoves.add(temp);
-        }
 
-        Collections.sort(possibleMoves);
         return possibleMoves;
     }
 
-    private List<State> generateMovesForPiece(State prevState, int row, int col, char piece) {
-        List<State> states = new ArrayList<>();
+    private LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> generateMovesForPiece(State prevState, int row, int col, char piece) {
+        LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> states = new LinkedList<>();
 
         switch (Character.toLowerCase(piece)) {
             case 'p', 'P':
@@ -170,17 +142,17 @@ public class AI {
         return states;
     }
 
-    private void generatePawnMoves(State prevState, int row, int col, char piece, List<State> moves) {
+    private void generatePawnMoves(State prevState, int row, int col, char piece, LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves) {
         int direction = Character.isUpperCase(piece) ? -1 : 1;
         int startRow = Character.isUpperCase(piece) ? 6 : 1;
 
         // Move forward
         if (isWithinBoard(row + direction, col) && prevState.getIndex(row + direction, col) == ' ') {
-            addMove(prevState, row, col, row + direction, col, moves, Character.isUpperCase(piece));
+            addMove(row, col, row + direction, col, moves, Character.isUpperCase(piece), true);
 
             // Double move from starting position
             if (row == startRow && prevState.getIndex(row + 2 * direction, col) == ' ') {
-                addMove(prevState, row, col, row + 2 * direction, col, moves, Character.isUpperCase(piece));
+                addMove(row, col, row + 2 * direction, col, moves, Character.isUpperCase(piece), true);
             }
         }
 
@@ -188,40 +160,39 @@ public class AI {
         for (int i = -1; i <= 1; i += 2) {
             if (isWithinBoard(row + direction, col + i) &&
                     isOpponentPiece(prevState.getIndex(row + direction, col + i), piece)) {
-                addMove(prevState, row, col, row + direction, col + i, moves, Character.isUpperCase(piece));
+                addMove(row, col, row + direction, col + i, moves, Character.isUpperCase(piece), false);
             }
         }
     }
 
-    private void generateKnightMoves(State prevState, int row, int col, char piece, List<State> moves) {
-        char[][] board = prevState.getBoard();
+    private void generateKnightMoves(State prevState, int row, int col, char piece, LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves) {
         int[][] knightMoves = {{-2, -1}, {-2, 1}, {-1, -2}, {-1, 2}, {1, -2}, {1, 2}, {2, -1}, {2, 1}};
         for (int[] move : knightMoves) {
             int newRow = row + move[0];
             int newCol = col + move[1];
             if (isWithinBoard(newRow, newCol) &&
-                    (board[newRow][newCol] == ' ' || isOpponentPiece(board[newRow][newCol], piece))) {
-                addMove(prevState, row, col, newRow, newCol, moves, Character.isUpperCase(piece));
+                    (prevState.getIndex(newRow, newCol) == ' ' || isOpponentPiece(prevState.getIndex(newRow, newCol), piece))) {
+                addMove(row, col, newRow, newCol, moves, Character.isUpperCase(piece), false);
             }
         }
     }
 
-    private void generateBishopMoves(State prevState, int row, int col, char piece, List<State> moves) {
+    private void generateBishopMoves(State prevState, int row, int col, char piece, LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves) {
         int[][] directions = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
         generateSlidingMoves(prevState, row, col, piece, moves, directions);
     }
 
-    private void generateRookMoves(State prevState, int row, int col, char piece, List<State> moves) {
+    private void generateRookMoves(State prevState, int row, int col, char piece, LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves) {
         int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
         generateSlidingMoves(prevState, row, col, piece, moves, directions);
     }
 
-    private void generateQueenMoves(State prevState, int row, int col, char piece, List<State> moves) {
+    private void generateQueenMoves(State prevState, int row, int col, char piece, LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves) {
         generateBishopMoves(prevState, row, col, piece, moves);
         generateRookMoves(prevState, row, col, piece, moves);
     }
 
-    private void generateKingMoves(State prevstate, int row, int col, char piece, List<State> currState) {
+    private void generateKingMoves(State prevstate, int row, int col, char piece, LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> currState) {
         int[][] directions = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
         boolean isWhite = Character.isUpperCase(piece);
 
@@ -230,23 +201,23 @@ public class AI {
             int newCol = col + dir[1];
             if (isWithinBoard(newRow, newCol) &&
                     (prevstate.getIndex(newRow, newCol) == ' ' || isOpponentPiece(prevstate.getIndex(newRow, newCol), piece))) {
-                addMove(prevstate, row, col, newRow, newCol, currState, isWhite);
+                addMove(row, col, newRow, newCol, currState, isWhite, false);
             }
         }
 
     }
 
     private void generateSlidingMoves(State prevState, int row, int col, char piece,
-                                      List<State> moves, int[][] directions) {
+                                      LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves, int[][] directions) {
         for (int[] dir : directions) {
             int newRow = row + dir[0];
             int newCol = col + dir[1];
             while (isWithinBoard(newRow, newCol)) {
                 if (prevState.getIndex(newRow, newCol) == ' ') {
-                    addMove(prevState, row, col, newRow, newCol, moves, Character.isUpperCase(piece));
+                    addMove(row, col, newRow, newCol, moves, Character.isUpperCase(piece), false);
                 } else {
                     if (isOpponentPiece(prevState.getIndex(newRow, newCol), piece)) {
-                        addMove(prevState, row, col, newRow, newCol, moves, Character.isUpperCase(piece));
+                        addMove(row, col, newRow, newCol, moves, Character.isUpperCase(piece), false);
                     }
                     break;
                 }
@@ -265,30 +236,12 @@ public class AI {
                 (Character.isLowerCase(piece) && Character.isUpperCase(targetPiece));
     }
 
-    private void addMove(State prevState, int row, int col, int newRow, int newCol, List<State>moves, boolean isWhite) {
+    private void addMove(int row, int col, int newRow, int newCol, LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves, boolean isWhite, boolean isPawn) {
 
-        State currState = new State(prevState, row, col, newRow, newCol, isWhite);
+        Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> tempMoves = new Pair<>(new Pair<>(row, col), new Pair<>(newRow, newCol));
+        if(isPawn) moves.addLast(tempMoves);
+        else moves.addFirst(tempMoves);
 
-//        if(a <= 5){
-//            currState.printBoard();
-//            a++;
-//        }
-
-
-
-//        //state
-//        char[][] newBoard = new char[8][8];
-//        char[][] board = prevState.getBoard();
-//        for (int i = 0; i < 8; i++) {
-//            System.arraycopy(board[i], 0, newBoard[i], 0, 8);
-//        }
-//        newBoard[newRow][newCol] = newBoard[row][col];
-//        newBoard[row][col] = ' ';
-//        int check = (isWhite) ? 1 : 0;
-
-        //if (gp.checkingP != null && gp.checkingP.color == check) return;
-        if(currState.validState()) moves.add(currState);
-        //System.out.println("Added move: " + row + ", " + col + " to " + newRow + ", " + newCol);
     }
 
 

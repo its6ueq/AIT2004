@@ -6,6 +6,7 @@ import piece.*;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import static main.AI.*;
 
@@ -232,12 +233,12 @@ public class GamePanel extends JPanel implements Runnable {
     private void aiMove() {
         startA = System.currentTimeMillis();
         int bestMoveValue = Integer.MAX_VALUE;
-        State bestMove = null;
+        Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> bestMove = null;
 
         State state = new State(current_board);
-        state.setupState();
-        for (State move : ai.getAllPossibleMoves(state, false)) {
-            int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, 4, move);
+
+        for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : ai.getAllPossibleMoves(state)) {
+            int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, 4, state);
             System.out.println("Move Value: " + moveValue);
             if (moveValue < bestMoveValue) {
                 bestMoveValue = moveValue;
@@ -252,13 +253,14 @@ public class GamePanel extends JPanel implements Runnable {
 //            }
 //            System.out.println();
 //        }
-        bestMove.queening();
-        if (bestMove != null) {
-            //System.out.println("Best Move: " + bestMoveValue);
-            updateBoardWithBestMove(bestMove.getBoard());
-            updateBoard();
-        }
+
+        state.goMove(bestMove.getL().getL(), bestMove.getL().getR(), bestMove.getR().getL(), bestMove.getR().getR());
+
+        //System.out.println("Best Move: " + bestMoveValue);
+        updateBoardWithBestMove(state.getBoard());
+        updateBoard();
         changePlayer();
+
         stopA = System.currentTimeMillis();
 
     }
