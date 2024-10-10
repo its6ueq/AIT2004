@@ -31,7 +31,7 @@ public class AI {
 //            return evaluateBoard(board);
 //        }
 
-        if (depth == 0 || isGameOver(currState)) {
+        if (depth == 0) {
 //            for (int i = 0; i < 8; i++) {
 //                for (int j = 0; j < 8; j++) {
 //                    System.out.print(board[i][j] + " ");
@@ -72,7 +72,7 @@ public class AI {
 //            System.out.println("Score: " + evaluateBoard(board));
 //            return evaluateBoard(board);
 //        }
-        if (depth == 0 || isGameOver(currState)) {
+        if (depth == 0) {
             return currState.getScore();
         }
 
@@ -263,27 +263,6 @@ public class AI {
     private boolean isOpponentPiece(char targetPiece, char piece) {
         return (Character.isUpperCase(piece) && Character.isLowerCase(targetPiece)) ||
                 (Character.isLowerCase(piece) && Character.isUpperCase(targetPiece));
-    }
-
-    private boolean isGameOver(State prevState) {
-        boolean whiteKingExists = false;
-        boolean blackKingExists = false;
-
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                if (prevState.getIndex(i, j) == 'K') whiteKingExists = true;
-                if (prevState.getIndex(i, j) == 'k') blackKingExists = true;
-            }
-        }
-
-        if (!whiteKingExists || !blackKingExists) {
-            return true;
-        }
-
-        boolean whiteHasMoves = !getAllPossibleMoves(prevState, true).isEmpty();
-        boolean blackHasMoves = !getAllPossibleMoves(prevState, false).isEmpty();
-
-        return !(whiteHasMoves && blackHasMoves);
     }
 
     private void addMove(State prevState, int row, int col, int newRow, int newCol, List<State>moves, boolean isWhite) {
