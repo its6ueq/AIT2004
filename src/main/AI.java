@@ -9,7 +9,7 @@ public class AI {
     private Map<String, Integer> transpositionTable = new HashMap<>();
     GamePanel gp;
 
-    public static int a = 0;
+    public static int a = 10;
 
 
     public AI(GamePanel gp) {
@@ -17,17 +17,19 @@ public class AI {
     }
 
     public int  alphaBetaMax(int alpha, int beta, int depth, State currState) {
-
+        System.out.println("Max Depth: " + depth);
         if (depth == 0) {
             return currState.getScore();
         }
 
         int bestValue = Integer.MIN_VALUE;
-        LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves = getAllPossibleMoves(currState);
+        LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves =  getAllPossibleMoves(currState);
+        System.out.println("Possible Moves: " + possibleMoves.size());
         for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : possibleMoves) {
+//            if(a > 0) a--;
+//            else System.exit(0);
             char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
             int tempScore = currState.score;
-            Boolean tempEndGame = currState.endGame;
             Boolean tempCastled = currState.castled;
             Boolean tempKingMoved = currState.kingMoved;
             Boolean tempRook1Moved = currState.rook1Moved;
@@ -35,17 +37,18 @@ public class AI {
 
             currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
 
-            int score = alphaBetaMin(alpha, beta, depth - 1, currState);
+            if(currState.validState()){
+                int score = alphaBetaMin(alpha, beta, depth - 1, currState);
 
-            bestValue = Math.max(bestValue, score);
-            alpha = Math.max(alpha, score);
+                bestValue = Math.max(bestValue, score);
+                alpha = Math.max(alpha, score);
 
-            if (beta <= alpha) {
-                break;
+                if (beta <= alpha) {
+                    break;
+                }
             }
 
             currState.score = tempScore;
-            currState.endGame = tempEndGame;
             currState.castled = tempCastled;
             currState.kingMoved = tempKingMoved;
             currState.rook1Moved = tempRook1Moved;
@@ -57,17 +60,17 @@ public class AI {
     }
 
     public int  alphaBetaMin(int alpha, int beta, int depth, State currState) {
-
+        System.out.println("Min Depth: " + depth);
         if (depth == 0) {
             return currState.getScore();
         }
 
         int bestValue = Integer.MAX_VALUE;
         LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves = getAllPossibleMoves(currState);
+        System.out.println("Possible Moves: " + possibleMoves.size());
         for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : possibleMoves) {
             char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
             int tempScore = currState.score;
-            Boolean tempEndGame = currState.endGame;
             Boolean tempCastled = currState.castled;
             Boolean tempKingMoved = currState.kingMoved;
             Boolean tempRook1Moved = currState.rook1Moved;
@@ -75,15 +78,16 @@ public class AI {
 
             currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
 
-            int score = alphaBetaMax(alpha, beta, depth - 1, currState);
-            bestValue = Math.min(bestValue, score);
-            beta = Math.min(beta, score);
-            if (beta <= alpha) {
-                break;
+            if(currState.validState()) {
+                int score = alphaBetaMax(alpha, beta, depth - 1, currState);
+                bestValue = Math.min(bestValue, score);
+                beta = Math.min(beta, score);
+                if (beta <= alpha) {
+                    break;
+                }
             }
 
             currState.score = tempScore;
-            currState.endGame = tempEndGame;
             currState.castled = tempCastled;
             currState.kingMoved = tempKingMoved;
             currState.rook1Moved = tempRook1Moved;
@@ -96,17 +100,19 @@ public class AI {
 
 
 
-    public LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> getAllPossibleMoves(State prevState) {
-        Boolean isWhite = prevState.isWhite();
+    public LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> getAllPossibleMoves(State currState) {
+        boolean isWhite = currState.isWhite();
+        if(isWhite) System.out.println("da trang");
+        else System.out.println("daden");
         LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves = new LinkedList<>();
 
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                char piece = prevState.getIndex(i, j);
+                char piece = currState.getIndex(i, j);
                 if (isWhite && Character.isUpperCase(piece) || !isWhite && Character.isLowerCase(piece)) {
                     //System.out.println("Generating moves for " + piece + " at " + i + ", " + j);
-                    if(piece == 'p' || piece == 'P') possibleMoves.addAll(generateMovesForPiece(prevState, i, j, piece));
-                    else possibleMoves.addAll(0, generateMovesForPiece(prevState, i, j, piece));
+                    if(piece == 'p' || piece == 'P') possibleMoves.addAll(generateMovesForPiece(currState, i, j, piece));
+                    else possibleMoves.addAll(0, generateMovesForPiece(currState, i, j, piece));
                 }
             }
 
