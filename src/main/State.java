@@ -16,9 +16,6 @@ public class State  implements Comparable<State> {
     int WKingX, WKingY;
     int BKingX, BKingY;
 
-    State parent;
-    ArrayList<State> children;
-
     Boolean castled;
     Boolean kingMoved;
     Boolean rook1Moved;
@@ -35,9 +32,10 @@ public class State  implements Comparable<State> {
     public static int[][] kingMidPoint ;
     public static int[][] kingEndPoint ;
 
-
     public State(char[][] board) {
         this.board = board;
+        color = BLACK;
+
         whiteChecked = new int[8][8];
         blackChecked = new int[8][8];
 
@@ -47,6 +45,11 @@ public class State  implements Comparable<State> {
         rook2Moved = false;
         score = 0;
         endGame = false;
+
+        WKingX = 7;
+        WKingY = 4;
+        BKingX = 0;
+        BKingY = 4;
 
         pawnPoint = new int[][]{
                 {900,900,900,900,900,900,900,900},
@@ -125,64 +128,28 @@ public class State  implements Comparable<State> {
                 {-50, -30, -30, -30, -30, -30, -30, -50}
         };
 
-        checkCastled();
+        setupState();
     }
 
-    public State (State prevState, int row, int col, int newRow, int newCol, Boolean isWhite){
-        parent = prevState;
-
-        //copy Board
-        board = new char[8][8];
-        char[][] tempBoard = this.parent.getBoard();
-
-        for(int i = 0; i < 8; i++){
-            System.arraycopy(tempBoard[i], 0, board[i], 0, 8);
-        }
-
-        //copy King Pos
-        this.WKingX = parent.WKingX;
-        this.WKingY = parent.WKingY;
-        this.BKingX = parent.BKingX;
-        this.BKingY = parent.BKingY;
-
-        //copy color
-        if(isWhite){
-            this.color = WHITE;
-        } else {
-            this.color = BLACK;
-        }
-
-        //castle
-        this.score = parent.score;
-        this.castled = parent.castled;
-        this.kingMoved = parent.kingMoved;
-        this.rook1Moved = parent.rook1Moved;
-        this.rook2Moved = parent.rook2Moved;
-        this.endGame = parent.endGame;
-
-        //copy white and black checked
-        this.whiteChecked = new int[8][8];
-        this.blackChecked = new int[8][8];
-
-        int[][] prevWhiteChecked = prevState.getWhiteChecked();
-        int[][] prevBlackChecked = prevState.getBlackChecked();
-
-        for(int i = 0; i < 8; i++){
-            System.arraycopy(prevWhiteChecked[i], 0, whiteChecked[i], 0, 8);
-            System.arraycopy(prevBlackChecked[i], 0, blackChecked[i], 0, 8);
-        }
-
+    public void goMove(int row, int col, int newRow, int newCol) {
         updateScore(row, col, newRow, newCol);
-
-        //update white and black checked
         updateBoard(row, col, newRow, newCol);
+        changeColor();
 
-        checkCastled();
+        System.out.println("Updating" + row + " " + col + " " + newRow + " " + newCol);
+        printBoard();
+    }
 
-//        printBoard();
+    public void undoMove(int row, int col, int newRow, int newCol, char tempPiece){
+        undoBoard(row, col, newRow, newCol, tempPiece);
+        changeColor();
+
+        System.out.println("Undoing" + row + " " + col + " " + newRow + " " + newCol);
+        printBoard();
     }
 
     private void updateScore(int row, int col, int newRow, int newCol){
+
         score -= calculatePosPoint(board[newRow][newCol], newRow, newCol);
         score -= calculatePosPoint(board[row][col], row, col);
         score += calculatePosPoint(board[row][col], newRow, newCol);
@@ -191,12 +158,6 @@ public class State  implements Comparable<State> {
         if(score > -101800 && score < 101800) endGame = true;
     }
 
-
-    private void checkCastled() {
-        if(board[0][0] != 'r') rook1Moved = true;
-        if(board[0][7] != 'r') rook2Moved = true;
-        if(board[0][4] != 'k') kingMoved = true;
-    }
 
     public Boolean addCastle(int a){
         if(a == 1){
@@ -244,9 +205,6 @@ public class State  implements Comparable<State> {
 
 
     private void updateBoard(int row, int col, int newRow, int newCol){
-//        System.out.println(1);
-//        if(row == 2 && col == 0 && newRow == 1 && newCol == 1)
-//            printBoard();
 
         if(row == 0 && col == 0) rook1Moved = true;
         if(row == 0 && col == 7) rook2Moved = true;
@@ -305,12 +263,52 @@ public class State  implements Comparable<State> {
             }
         }
 
-        if(board[newRow][newCol] != ' '){
+        if(board[newRow][newCol] == ' '){
+            for (int[] dir : bishopDirections) {
+                x = newRow + dir[0];
+                y = newCol + dir[1];
+                while (isWithinBoard(x, y) ) {
+                    if(x == row && y == col || x == newRow && y == newCol)
+                        break;
+                    if (board[x][y] != ' ') {
+                        if(board[x][y] == 'b' || board[x][y] == 'B'){
+                            updateBishop.add(new Pair<>(x, y));
+                        }
+                        if(board[x][y] == 'q' || board[x][y] == 'Q'){
+//                        System.out.println("queen add for" + row + " " + col + " " + x + " " + y);
+                            updateBishop.add(new Pair<>(x, y));
+                            updateRook.add(new Pair<>(x, y));
+                        }
+                        break;
+                    }
+                    x += dir[0];
+                    y += dir[1];
+                }
+            }
 
+            for (int[] dir : rookDirections) {
+                x = newRow + dir[0];
+                y = newCol + dir[1];
+                while (isWithinBoard(x, y)) {
+                    if(x == row && y == col || x == newRow && y == newCol)
+                        break;
+                    if (board[x][y] != ' ') {
+                        if(board[x][y] == 'r' || board[x][y] == 'R'){
+                            updateRook.add(new Pair<>(x, y));
+                        }
+                        if(board[x][y] == 'q' || board[x][y] == 'Q'){
+//                        System.out.println("queen add for" + row + " " + col + " " + x + " " + y);
+
+                            updateBishop.add(new Pair<>(x, y));
+                            updateRook.add(new Pair<>(x, y));
+                        }
+                        break;
+                    }
+                    x += dir[0];
+                    y += dir[1];
+                }
+            }
         }
-
-        char temp = board[row][col];
-
 
 
 //        System.out.println(2 + " " + row + " " + col + " " + newRow + " " + newCol);
@@ -369,25 +367,173 @@ public class State  implements Comparable<State> {
             if(board[pair.getL()][pair.getR()] != ' ') {
                 slidingMove(rookDirections, pair.getL(), pair.getR(), getColor(pair), 1);
             }
-//            System.out.println(board[pair.getL()][pair.getR()]);
         }
 
-//        if(row == 0 && col == 0) {
-//            printBoard();
-//            System.out.println(row + " " + col + " " + newRow + " " + newCol);
-//        }
-
-//        if(row == 2 && col == 0 && newRow == 1 && newCol == 1)
-//            printBoard();
-
-//        System.out.println(10);
-//        printBoard();
-
-//        System.out.println("updateddd");
+    }
 
 
+
+
+    private void undoBoard(int row, int col, int newRow, int newCol, char piece){
+        Set<Pair<Integer, Integer>> updateBishop = new HashSet<>();
+        Set<Pair<Integer, Integer>> updateRook = new HashSet<>();
+
+        int x, y;
+
+        int[][] bishopDirections = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+        for (int[] dir : bishopDirections) {
+            x = row + dir[0];
+            y = col + dir[1];
+            while (isWithinBoard(x, y) ) {
+                if(x == row && y == col || x == newRow && y == newCol)
+                    break;
+                if (board[x][y] != ' ') {
+                    if(board[x][y] == 'b' || board[x][y] == 'B'){
+                        updateBishop.add(new Pair<>(x, y));
+                    }
+                    if(board[x][y] == 'q' || board[x][y] == 'Q'){
+//                        System.out.println("queen add for" + row + " " + col + " " + x + " " + y);
+                        updateBishop.add(new Pair<>(x, y));
+                        updateRook.add(new Pair<>(x, y));
+                    }
+                    break;
+                }
+                x += dir[0];
+                y += dir[1];
+            }
+        }
+
+        //        System.out.println("Bishop need to update: "+ updateBishop.size());
+        int[][] rookDirections = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        for (int[] dir : rookDirections) {
+            x = row + dir[0];
+            y = col + dir[1];
+            while (isWithinBoard(x, y)) {
+                if(x == row && y == col || x == newRow && y == newCol)
+                    break;
+                if (board[x][y] != ' ') {
+                    if(board[x][y] == 'r' || board[x][y] == 'R'){
+                        updateRook.add(new Pair<>(x, y));
+                    }
+                    if(board[x][y] == 'q' || board[x][y] == 'Q'){
+//                        System.out.println("queen add for" + row + " " + col + " " + x + " " + y);
+
+                        updateBishop.add(new Pair<>(x, y));
+                        updateRook.add(new Pair<>(x, y));
+                    }
+                    break;
+                }
+                x += dir[0];
+                y += dir[1];
+            }
+        }
+
+        if(piece == ' '){
+            for (int[] dir : bishopDirections) {
+                x = newRow + dir[0];
+                y = newCol + dir[1];
+                while (isWithinBoard(x, y) ) {
+                    if(x == row && y == col || x == newRow && y == newCol)
+                        break;
+                    if (board[x][y] != ' ') {
+                        if(board[x][y] == 'b' || board[x][y] == 'B'){
+                            updateBishop.add(new Pair<>(x, y));
+                        }
+                        if(board[x][y] == 'q' || board[x][y] == 'Q'){
+//                        System.out.println("queen add for" + row + " " + col + " " + x + " " + y);
+                            updateBishop.add(new Pair<>(x, y));
+                            updateRook.add(new Pair<>(x, y));
+                        }
+                        break;
+                    }
+                    x += dir[0];
+                    y += dir[1];
+                }
+            }
+
+            for (int[] dir : rookDirections) {
+                x = newRow + dir[0];
+                y = newCol + dir[1];
+                while (isWithinBoard(x, y)) {
+                    if(x == row && y == col || x == newRow && y == newCol)
+                        break;
+                    if (board[x][y] != ' ') {
+                        if(board[x][y] == 'r' || board[x][y] == 'R'){
+                            updateRook.add(new Pair<>(x, y));
+                        }
+                        if(board[x][y] == 'q' || board[x][y] == 'Q'){
+//                        System.out.println("queen add for" + row + " " + col + " " + x + " " + y);
+
+                            updateBishop.add(new Pair<>(x, y));
+                            updateRook.add(new Pair<>(x, y));
+                        }
+                        break;
+                    }
+                    x += dir[0];
+                    y += dir[1];
+                }
+            }
+        }
+
+
+//        System.out.println(2 + " " + row + " " + col + " " + newRow + " " + newCol);
+//        System.out.println(3);
+
+        for(Pair<Integer, Integer> pair : updateBishop){
+            if(board[pair.getL()][pair.getR()] != ' ') {
+                slidingMove(bishopDirections, pair.getL(), pair.getR(), getColor(pair), -1);
+            }
+//            System.out.println(pair.getL() + " " + pair.getR());
+        }
+
+//        System.out.println(4);
+
+        for(Pair<Integer, Integer> pair : updateRook){
+            if(board[pair.getL()][pair.getR()] != ' ') {
+                slidingMove(rookDirections, pair.getL(), pair.getR(), getColor(pair), -1);
+            }
+        }
+
+//        System.out.println(5);
+
+        filterPiece(board[newRow][newCol], newRow, newCol, -1);
+
+//        System.out.println(6);
+
+        board[row][col] = board[newRow][newCol];
+        board[newRow][newCol] = piece;
+
+        filterPiece(board[row][col], row, col, 1);
+        filterPiece(board[newRow][newCol], newRow, newCol, 1);
+//        System.out.println(7);
+
+        if(newRow == WKingX && newCol == WKingY) {
+            WKingX = row;
+            WKingY = col;
+        } else if (newRow == BKingX && newCol == BKingY) {
+            BKingX = row;
+            BKingY = col;
+        }
+
+
+
+        for(Pair<Integer, Integer> pair : updateBishop){
+            if(board[pair.getL()][pair.getR()] != ' '){
+                slidingMove(bishopDirections, pair.getL(), pair.getR(), getColor(pair), 1);
+            }
+        }
+
+//        System.out.println(9);
+
+        for(Pair<Integer, Integer> pair : updateRook){
+            if(board[pair.getL()][pair.getR()] != ' ') {
+                slidingMove(rookDirections, pair.getL(), pair.getR(), getColor(pair), 1);
+            }
+        }
 
     }
+
+
 
     private int getColor(Pair<Integer, Integer> pair){
         if(Character.isLowerCase(board[pair.getL()][pair.getR()]))
@@ -437,6 +583,7 @@ public class State  implements Comparable<State> {
 //            System.out.println();
 //        }
 //        System.out.println();
+        printBoard();
     }
 
     private void filterPiece(char c, int row, int col, int add){
@@ -655,6 +802,14 @@ public class State  implements Comparable<State> {
         };
     }
 
+    private void changeColor(){
+        if(this.color == WHITE) this.color = BLACK;
+        else this.color = WHITE;
+    }
+
+    public boolean isWhite(){
+        return this.color == WHITE;
+    }
     public void printBoard() {
         System.out.println(color == 1 ? "Black" : "White");
         System.out.println(whiteChecked[BKingX][BKingY]);
