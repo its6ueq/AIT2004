@@ -20,7 +20,7 @@ public class GamePanel extends JPanel implements Runnable {
     Mouse mouse = new Mouse ();
     AI ai = new AI (this);
     char[][] current_board = new char[8][8];
-    State state;
+    State currState;
     public static ArrayList<Piece> pieces = new ArrayList<Piece> ();
     public static ArrayList<Piece> simPieces = new ArrayList<> ();
     ArrayList<Piece> promoPieces = new ArrayList<> ();
@@ -89,8 +89,8 @@ public class GamePanel extends JPanel implements Runnable {
         pieces.add (new King (BLACK, 4, 0));
 
         updateBoard();
-        state = new State(current_board);
-        state.setupState();
+        currState = new State(current_board);
+        currState.setupState();
     }
 
     private void copyPieces(ArrayList<Piece> source, ArrayList<Piece> target){
@@ -214,7 +214,7 @@ public class GamePanel extends JPanel implements Runnable {
 //        for (Piece piece : pieces) {
 //            System.out.println(piece);
 //        }
-        System.out.println("Current Value: " + state.getScore());
+        System.out.println("Current Value: " + currState.getScore());
     }
 
     private Piece createPieceFromChar(char pieceChar, int row, int col) {
@@ -235,15 +235,34 @@ public class GamePanel extends JPanel implements Runnable {
         int bestMoveValue = Integer.MAX_VALUE;
         Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> bestMove = null;
 
-        State state = new State(current_board);
+       currState = new State(current_board);
 
-        for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : ai.getAllPossibleMoves(state)) {
-            int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, 4, state);
+        currState.endGame = calculateTotalMaterial() <= 1800;
+
+        for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : ai.getAllPossibleMoves(currState)) {
+            System.out.println("step"+ move.getL().getL() + " " + move.getL().getR());
+            char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
+            int tempScore = currState.score;
+            Boolean tempCastled = currState.castled;
+            Boolean tempKingMoved = currState.kingMoved;
+            Boolean tempRook1Moved = currState.rook1Moved;
+            Boolean tempRook2Moved = currState.rook2Moved;
+
+            currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
+
+            int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, 4, currState);
             System.out.println("Move Value: " + moveValue);
             if (moveValue < bestMoveValue) {
                 bestMoveValue = moveValue;
                 bestMove = move;
             }
+
+            currState.score = tempScore;
+            currState.castled = tempCastled;
+            currState.kingMoved = tempKingMoved;
+            currState.rook1Moved = tempRook1Moved;
+            currState.rook2Moved = tempRook2Moved;
+            currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
 //            bestMove.printBoard();
         }
         System.out.println("Best Move Value: " + bestMoveValue);
@@ -254,10 +273,10 @@ public class GamePanel extends JPanel implements Runnable {
 //            System.out.println();
 //        }
 
-        state.goMove(bestMove.getL().getL(), bestMove.getL().getR(), bestMove.getR().getL(), bestMove.getR().getR());
+        currState.goMove(bestMove.getL().getL(), bestMove.getL().getR(), bestMove.getR().getL(), bestMove.getR().getR());
 
         //System.out.println("Best Move: " + bestMoveValue);
-        updateBoardWithBestMove(state.getBoard());
+        updateBoardWithBestMove(currState.getBoard());
         updateBoard();
         changePlayer();
 
@@ -265,6 +284,18 @@ public class GamePanel extends JPanel implements Runnable {
 
     }
 
+    private int calculateTotalMaterial() {
+        int totalMaterial = 0;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                char piece = current_board[i][j];
+                if (piece != ' ' && Character.toLowerCase(piece) != 'k') {
+                    totalMaterial += Math.abs(currState.getPieceValue(piece));
+                }
+            }
+        }
+        return totalMaterial;
+    }
 
 
     private void simulate(){

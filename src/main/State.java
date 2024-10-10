@@ -134,18 +134,24 @@ public class State  implements Comparable<State> {
     public void goMove(int row, int col, int newRow, int newCol) {
         updateScore(row, col, newRow, newCol);
         updateBoard(row, col, newRow, newCol);
-        changeColor();
+
 
         System.out.println("Updating" + row + " " + col + " " + newRow + " " + newCol);
         printBoard();
+
+        changeColor();
+
+        if(color == WHITE && blackChecked[WKingX][WKingY] != 0) score -= 100000;
     }
 
     public void undoMove(int row, int col, int newRow, int newCol, char tempPiece){
         undoBoard(row, col, newRow, newCol, tempPiece);
-        changeColor();
 
         System.out.println("Undoing" + row + " " + col + " " + newRow + " " + newCol);
         printBoard();
+
+        changeColor();
+
     }
 
     private void updateScore(int row, int col, int newRow, int newCol){
@@ -154,8 +160,6 @@ public class State  implements Comparable<State> {
         score -= calculatePosPoint(board[row][col], row, col);
         score += calculatePosPoint(board[row][col], newRow, newCol);
         score -= getPieceValue(board[newRow][newCol]);
-
-        if(score > -101800 && score < 101800) endGame = true;
     }
 
 
@@ -229,7 +233,6 @@ public class State  implements Comparable<State> {
                     if(board[x][y] == 'q' || board[x][y] == 'Q'){
 //                        System.out.println("queen add for" + row + " " + col + " " + x + " " + y);
                         updateBishop.add(new Pair<>(x, y));
-                        updateRook.add(new Pair<>(x, y));
                     }
                     break;
                 }
@@ -252,8 +255,6 @@ public class State  implements Comparable<State> {
                     }
                     if(board[x][y] == 'q' || board[x][y] == 'Q'){
 //                        System.out.println("queen add for" + row + " " + col + " " + x + " " + y);
-
-                        updateBishop.add(new Pair<>(x, y));
                         updateRook.add(new Pair<>(x, y));
                     }
                     break;
@@ -542,18 +543,10 @@ public class State  implements Comparable<State> {
     }
 
     public void setupState(){
-        color = WHITE;
         this.whiteChecked = new int[board.length][board[0].length];
         for(int i = 0; i < board.length; i++){
             for(int j = 0; j < board[0].length; j++){
                 filterPiece(board[i][j], i, j, 1);
-                if(board[i][j] == 'k'){
-                    BKingX = i;
-                    BKingY = j;
-                } else if (board[i][j] == 'K'){
-                    WKingX = i;
-                    WKingY = j;
-                }
             }
         }
 
@@ -757,7 +750,7 @@ public class State  implements Comparable<State> {
     public boolean validState(){
 
         if(color == BLACK && whiteChecked[BKingX][BKingY] != 0) return false;
-//        if(color == WHITE && blackChecked[WKingX][WKingY] != 0) return false;
+
         return true;
     }
 
@@ -783,7 +776,7 @@ public class State  implements Comparable<State> {
         return 0;
     }
 
-    private int getPieceValue(char piece) {
+    int getPieceValue(char piece) {
         return switch (piece) {
             case 'p' -> -100;
             case 'n' -> -320;
@@ -848,6 +841,8 @@ public class State  implements Comparable<State> {
                 if(blackChecked[i][j] < 0) System.exit(0);
             }
         }
+
+
     }
 
     @Override
