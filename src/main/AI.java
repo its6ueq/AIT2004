@@ -5,26 +5,29 @@ import java.util.*;
 import static main.State.*;
 
 public class AI {
-    private static final int DEPTH = 4;
     private Map<String, Integer> transpositionTable = new HashMap<>();
     GamePanel gp;
 
-    public static int a = 10;
-
+    public static int a = 0;
+    public static int count = 0;
 
     public AI(GamePanel gp) {
         this.gp = gp;
     }
 
     public int  alphaBetaMax(int alpha, int beta, int depth, State currState) {
-        System.out.println("Max Depth: " + depth);
+//        System.out.println("max");
+        a++;
+//        if(a== 100) System.exit(0);
+//        System.out.println("Max Depth: " + depth);
         if (depth == 0) {
             return currState.getScore();
         }
 
         int bestValue = Integer.MIN_VALUE;
         LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves =  getAllPossibleMoves(currState);
-        System.out.println("Possible Moves: " + possibleMoves.size());
+//        System.out.println("Possible Moves: " + possibleMoves.size());
+        if(possibleMoves.isEmpty()) return currState.getScore();
         for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : possibleMoves) {
 //            if(a > 0) a--;
 //            else System.exit(0);
@@ -39,11 +42,21 @@ public class AI {
 
             if(currState.validState()){
                 int score = alphaBetaMin(alpha, beta, depth - 1, currState);
-
+//                System.out.println("Score: "+ score + " Alpha: " + alpha + " Beta: " + beta + " Depth: " + depth);
                 bestValue = Math.max(bestValue, score);
                 alpha = Math.max(alpha, score);
 
+//                System.out.println("Score: "+ score + " Alpha: " + alpha + " Beta: " + beta + " Depth: " + depth);
+//                currState.printBoard();
                 if (beta <= alpha) {
+//                    System.out.println("Cutting");
+                    currState.score = tempScore;
+                    currState.castled = tempCastled;
+                    currState.kingMoved = tempKingMoved;
+                    currState.rook1Moved = tempRook1Moved;
+                    currState.rook2Moved = tempRook2Moved;
+
+                    currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
                     break;
                 }
             }
@@ -55,19 +68,23 @@ public class AI {
             currState.rook2Moved = tempRook2Moved;
 
             currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
+
+
+
         }
         return bestValue;
     }
 
     public int  alphaBetaMin(int alpha, int beta, int depth, State currState) {
-        System.out.println("Min Depth: " + depth);
+//        System.out.println("Min Depth: " + depth);
         if (depth == 0) {
             return currState.getScore();
         }
 
         int bestValue = Integer.MAX_VALUE;
         LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves = getAllPossibleMoves(currState);
-        System.out.println("Possible Moves: " + possibleMoves.size());
+//        System.out.println("Possible Moves: " + possibleMoves.size());
+        if(possibleMoves.isEmpty()) return currState.getScore();
         for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : possibleMoves) {
             char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
             int tempScore = currState.score;
@@ -79,14 +96,29 @@ public class AI {
             currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
 
             if(currState.validState()) {
+
                 int score = alphaBetaMax(alpha, beta, depth - 1, currState);
+
+//                System.out.println("Score: "+ score + " Alpha: " + alpha + " Beta: " + beta + " Depth: " + depth);
+
                 bestValue = Math.min(bestValue, score);
                 beta = Math.min(beta, score);
+
+//                System.out.println("Score: "+ score + " Alpha: " + alpha + " Beta: " + beta + " Depth: " + depth);
+//                currState.printBoard();
+
                 if (beta <= alpha) {
+//                    System.out.println("Cutting min");
+                    currState.score = tempScore;
+                    currState.castled = tempCastled;
+                    currState.kingMoved = tempKingMoved;
+                    currState.rook1Moved = tempRook1Moved;
+                    currState.rook2Moved = tempRook2Moved;
+
+                    currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
                     break;
                 }
             }
-
             currState.score = tempScore;
             currState.castled = tempCastled;
             currState.kingMoved = tempKingMoved;
@@ -94,6 +126,7 @@ public class AI {
             currState.rook2Moved = tempRook2Moved;
 
             currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
+
         }
         return bestValue;
     }
@@ -102,8 +135,8 @@ public class AI {
 
     public LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> getAllPossibleMoves(State currState) {
         boolean isWhite = currState.isWhite();
-        if(isWhite) System.out.println("da trang");
-        else System.out.println("daden");
+//        if(isWhite) System.out.println("da trang");
+//        else System.out.println("daden");
         LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves = new LinkedList<>();
 
         for (int i = 0; i < 8; i++) {

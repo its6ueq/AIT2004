@@ -12,6 +12,8 @@ import static main.AI.*;
 
 
 public class GamePanel extends JPanel implements Runnable {
+    private static final int DEPTH = 6;
+
     public static final int WIDTH = 1100;
     public static final int HEIGHT = 800;
     final int FPS = 60;
@@ -232,15 +234,16 @@ public class GamePanel extends JPanel implements Runnable {
 
     private void aiMove() {
         startA = System.currentTimeMillis();
+
         int bestMoveValue = Integer.MAX_VALUE;
         Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> bestMove = null;
 
-       currState = new State(current_board);
+        currState = new State(current_board);
 
         currState.endGame = calculateTotalMaterial() <= 1800;
-
+        System.out.println("Start");
         for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : ai.getAllPossibleMoves(currState)) {
-            System.out.println("step"+ move.getL().getL() + " " + move.getL().getR());
+//            System.out.println("step"+ move.getL().getL() + " " + move.getL().getR());
             char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
             int tempScore = currState.score;
             Boolean tempCastled = currState.castled;
@@ -250,8 +253,11 @@ public class GamePanel extends JPanel implements Runnable {
 
             currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
 
-            int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, 4, currState);
+            int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, DEPTH - 1, currState);
+
             System.out.println("Move Value: " + moveValue);
+//            if(moveValue == 2147483647) currState.printBoard();
+//            System.out.println("Best Value: " + bestMoveValue);
             if (moveValue < bestMoveValue) {
                 bestMoveValue = moveValue;
                 bestMove = move;
@@ -266,6 +272,7 @@ public class GamePanel extends JPanel implements Runnable {
 //            bestMove.printBoard();
         }
         System.out.println("Best Move Value: " + bestMoveValue);
+//        System.exit(0);
 //        for (int i = 0; i < 8; i++){
 //            for (int j = 0; j < 8; j++){
 //                System.out.print(bestMove[i][j] + " ");
@@ -274,7 +281,7 @@ public class GamePanel extends JPanel implements Runnable {
 //        }
 
         currState.goMove(bestMove.getL().getL(), bestMove.getL().getR(), bestMove.getR().getL(), bestMove.getR().getR());
-
+        currState.printBoard();
         //System.out.println("Best Move: " + bestMoveValue);
         updateBoardWithBestMove(currState.getBoard());
         updateBoard();
