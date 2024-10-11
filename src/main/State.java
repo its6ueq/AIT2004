@@ -6,8 +6,10 @@ import java.util.Set;
 
 import static main.GamePanel.WHITE;
 import static main.GamePanel.BLACK;
+import static main.AI.count;
 
 public class State  implements Comparable<State> {
+
     char[][] board;
     int[][] blackChecked;
     int[][] whiteChecked;
@@ -136,21 +138,24 @@ public class State  implements Comparable<State> {
         updateBoard(row, col, newRow, newCol);
 
 
-        System.out.println("Updating" + row + " " + col + " " + newRow + " " + newCol);
-        printBoard();
+//        System.out.println("going move: " + row + "," + col + " -> " + newRow + "," + newCol);
+//        printBoard();
 
         changeColor();
 
-        if(color == WHITE && blackChecked[WKingX][WKingY] != 0) score -= 100000;
+//        if(color == BLACK && blackChecked[WKingX][WKingY] != 0) score -= 100000;
+        count++;
     }
 
     public void undoMove(int row, int col, int newRow, int newCol, char tempPiece){
         undoBoard(row, col, newRow, newCol, tempPiece);
 
-        System.out.println("Undoing" + row + " " + col + " " + newRow + " " + newCol);
-        printBoard();
+//        System.out.println("Undoing move: " + row + "," + col + " -> " + newRow + "," + newCol);
+
+//        printBoard();
 
         changeColor();
+        count--;
 
     }
 
@@ -749,8 +754,7 @@ public class State  implements Comparable<State> {
 
     public boolean validState(){
 
-        if(color == BLACK && whiteChecked[BKingX][BKingY] != 0) return false;
-
+        if(color == WHITE && whiteChecked[BKingX][BKingY] != 0) return false;
         return true;
     }
 
@@ -805,7 +809,8 @@ public class State  implements Comparable<State> {
     }
     public void printBoard() {
         System.out.println(color == 1 ? "Black" : "White");
-        System.out.println(whiteChecked[BKingX][BKingY]);
+        System.out.println("Count: " + count);
+        if(endGame) System.out.println("endgame");
         System.out.println("Whiteking: " + WKingX + " " + WKingY);
         System.out.println("Blackking: " + BKingX + " " + BKingY);
         System.out.println("Score: " + score);
