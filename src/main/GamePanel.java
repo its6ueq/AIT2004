@@ -6,9 +6,14 @@ import piece.*;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
+
+import static main.AI.*;
 
 
 public class GamePanel extends JPanel implements Runnable {
+    private static final int DEPTH = 5;
+
     public static final int WIDTH = 1100;
     public static final int HEIGHT = 800;
     final int FPS = 60;
@@ -17,7 +22,7 @@ public class GamePanel extends JPanel implements Runnable {
     Mouse mouse = new Mouse ();
     AI ai = new AI (this);
     char[][] current_board = new char[8][8];
-
+    State currState;
     public static ArrayList<Piece> pieces = new ArrayList<Piece> ();
     public static ArrayList<Piece> simPieces = new ArrayList<> ();
     ArrayList<Piece> promoPieces = new ArrayList<> ();
@@ -26,6 +31,8 @@ public class GamePanel extends JPanel implements Runnable {
     public static final int WHITE = 0;
     public static final int BLACK = 1;
     int currentColor = WHITE;
+
+    long startA, stopA;
 
     boolean canMove;
     boolean validSquare;
@@ -84,6 +91,8 @@ public class GamePanel extends JPanel implements Runnable {
         pieces.add (new King (BLACK, 4, 0));
 
         updateBoard();
+        currState = new State(current_board);
+        currState.setupState();
     }
 
     private void copyPieces(ArrayList<Piece> source, ArrayList<Piece> target){
@@ -175,15 +184,13 @@ public class GamePanel extends JPanel implements Runnable {
         for (Piece p : pieces){
             current_board[p.row][p.col] = p.symbol;
         }
-
-        for (int i = 0; i < 8; i++){
-            for (int j = 0; j < 8; j++){
+        System.out.println ("=========================================");
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
                 System.out.print(current_board[i][j] + " ");
             }
             System.out.println();
         }
-
-        System.out.println ("=========================================");
     }
 
     private void updateBoardWithBestMove(char[][] bestMove) {
@@ -209,7 +216,7 @@ public class GamePanel extends JPanel implements Runnable {
 //        for (Piece piece : pieces) {
 //            System.out.println(piece);
 //        }
-        System.out.println("Current Value: " + ai.evaluateBoard(current_board));
+        System.out.println("Current Value: " + currState.getScore());
     }
 
     private Piece createPieceFromChar(char pieceChar, int row, int col) {
@@ -226,34 +233,85 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void aiMove() {
+        startA = System.currentTimeMillis();
+
         int bestMoveValue = Integer.MAX_VALUE;
-        char[][] bestMove = null;
-        for (char[][] move : ai.getAllPossibleMoves(current_board, false)) {
-            int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, 4, move);
+        Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> bestMove = null;
+
+        currState = new State(current_board);
+
+        currState.endGame = calculateTotalMaterial() <= 1800;
+        System.out.println("Start");
+        for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : ai.getAllPossibleMoves(currState)) {
+//            System.out.println("step"+ move.getL().getL() + " " + move.getL().getR());
+            char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
+            int tempScore = currState.score;
+            Boolean tempCastled = currState.castled;
+            Boolean tempKingMoved = currState.kingMoved;
+            Boolean tempRook1Moved = currState.rook1Moved;
+            Boolean tempRook2Moved = currState.rook2Moved;
+
+            currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
+
+            int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, DEPTH - 1, currState);
+
             System.out.println("Move Value: " + moveValue);
+//            if(moveValue == 2147483647) currState.printBoard();
+//            System.out.println("Best Value: " + bestMoveValue);
             if (moveValue < bestMoveValue) {
                 bestMoveValue = moveValue;
                 bestMove = move;
             }
+
+            currState.score = tempScore;
+            currState.castled = tempCastled;
+            currState.kingMoved = tempKingMoved;
+            currState.rook1Moved = tempRook1Moved;
+            currState.rook2Moved = tempRook2Moved;
+            currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
+//            bestMove.printBoard();
+
         }
         System.out.println("Best Move Value: " + bestMoveValue);
+//        System.exit(0);
 //        for (int i = 0; i < 8; i++){
 //            for (int j = 0; j < 8; j++){
 //                System.out.print(bestMove[i][j] + " ");
 //            }
 //            System.out.println();
 //        }
+
+        currState.goMove(bestMove.getL().getL(), bestMove.getL().getR(), bestMove.getR().getL(), bestMove.getR().getR());
+
         for(int i = 0; i < 8; i++){
-            if(bestMove[7][i] == 'p') bestMove[7][i] = 'q';
-            if(bestMove[7][i] == 'P') bestMove[0][i] = 'Q';
+            if(currState.board[7][i] == 'p') currState.board[7][i] = 'q';
         }
-        if (bestMove != null) {
-            //System.out.println("Best Move: " + bestMoveValue);
-            updateBoardWithBestMove(bestMove);
-            updateBoard();
-        }
+
+        currState.printBoard();
+        //System.out.println("Best Move: " + bestMoveValue);
+        updateBoardWithBestMove(currState.getBoard());
+        updateBoard();
         changePlayer();
+
+
+
+        stopA = System.currentTimeMillis();
+
     }
+
+    private int calculateTotalMaterial() {
+        int totalMaterial = 0;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                char piece = current_board[i][j];
+                if (piece != ' ' && Character.toLowerCase(piece) != 'k') {
+                    totalMaterial += Math.abs(currState.getPieceValue(piece));
+                }
+            }
+        }
+        return totalMaterial;
+    }
+
 
     private void simulate(){
         canMove = false;
@@ -432,6 +490,8 @@ public class GamePanel extends JPanel implements Runnable {
         else {
             if (currentColor == WHITE) {
                 g2.drawString("White's turn", 850, 250);
+                g2.drawString("Time: ", 825, 550);
+                g2.drawString(String.valueOf((double)(stopA - startA)/1000), 825, 650);
                 if (checkingP != null && checkingP.color == BLACK) {
                     g2.drawString("The King", 840, 350);
                     g2.drawString("is in check!", 840, 450);
