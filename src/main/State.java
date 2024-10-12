@@ -153,7 +153,7 @@ public class State  implements Comparable<State> {
 
     public void undoMove(int row, int col, int newRow, int newCol, char tempPiece){
         if(board[newRow][newCol] == 'k' && abs(newCol - col) == 2) {
-            System.out.println("undoing");
+//            System.out.println("undoing");
             undoCastle(row, col, newRow, newCol);
         }
         else {
@@ -874,7 +874,7 @@ public class State  implements Comparable<State> {
 
     public void goCastle(int row, int col, int newRow, int newCol){
         if(newCol - col < 0){
-            System.out.println("Castle1");
+//            System.out.println("Castle1");
             filterPiece('k', 0, 4, -1);
             filterPiece('r', 0, 0, -1);
             score -= calculatePosPoint('k', 0, 4);
@@ -891,7 +891,7 @@ public class State  implements Comparable<State> {
             rook1Moved = true;
             kingMoved = true;
         } else {
-            System.out.println("Castle2");
+//            System.out.println("Castle2");
             filterPiece('k', 0, 4, -1);
             filterPiece('r', 0, 7, -1);
             score -= calculatePosPoint('k', 0, 4);
@@ -909,12 +909,12 @@ public class State  implements Comparable<State> {
             kingMoved = true;
         }
         score -= 100;
-        printBoard();
+//        printBoard();
     }
 
     public void undoCastle(int row, int col, int newRow, int newCol){
         if(newCol - col < 0){
-            System.out.println("Undoc1");
+//            System.out.println("Undoc1");
             filterPiece('k', 0, 2, -1);
             filterPiece('r', 0, 3, -1);
             score -= calculatePosPoint('k', 0, 2);
@@ -928,7 +928,7 @@ public class State  implements Comparable<State> {
             score += calculatePosPoint('k', 0, 4);
             score += calculatePosPoint('r', 0, 0);
         } else {
-            System.out.println("Undoc2");
+//            System.out.println("Undoc2");
             filterPiece('k', 0, 6, -1);
             filterPiece('r', 0, 5, -1);
             score -= calculatePosPoint('k', 0, 6);
@@ -942,7 +942,7 @@ public class State  implements Comparable<State> {
             score += calculatePosPoint('k', 0, 4);
             score += calculatePosPoint('r', 0, 7);
         }
-        printBoard();
+//        printBoard();
 //        System.exit(0);
     }
 
