@@ -277,7 +277,7 @@ public class AI {
         generateRookMoves(prevState, row, col, piece, moves);
     }
 
-    private void generateKingMoves(State prevstate, int row, int col, char piece, LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> currState) {
+    private void generateKingMoves(State prevstate, int row, int col, char piece, LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves) {
         int[][] directions = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
 
         for (int[] dir : directions) {
@@ -285,8 +285,23 @@ public class AI {
             int newCol = col + dir[1];
             if (isWithinBoard(newRow, newCol) &&
                     (prevstate.getIndex(newRow, newCol) == ' ' || isOpponentPiece(prevstate.getIndex(newRow, newCol), piece))) {
-                addMove(row, col, newRow, newCol, currState, false);
+                addMove(row, col, newRow, newCol, moves, false);
             }
+        }
+
+        switch (prevstate.canCastle()){
+            case 1:
+                addMove(0, 4, 0, 2, moves, false);
+                break;
+            case 2:
+                addMove(0, 4, 0, 6, moves, false);
+                break;
+            case 3:
+                addMove(0, 4, 0, 2, moves, false);
+                addMove(0, 4, 0, 6, moves, false);
+                break;
+            default:
+                break;
         }
 
     }

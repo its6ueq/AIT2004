@@ -282,11 +282,18 @@ public class GamePanel extends JPanel implements Runnable {
 //        }
 
         currState.goMove(bestMove.getL().getL(), bestMove.getL().getR(), bestMove.getR().getL(), bestMove.getR().getR());
+
+        for(int i = 0; i < 8; i++){
+            if(currState.board[7][i] == 'p') currState.board[7][i] = 'q';
+        }
+
         currState.printBoard();
         //System.out.println("Best Move: " + bestMoveValue);
         updateBoardWithBestMove(currState.getBoard());
         updateBoard();
         changePlayer();
+
+
 
         stopA = System.currentTimeMillis();
 

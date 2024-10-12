@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import static java.lang.Math.abs;
 import static main.GamePanel.WHITE;
 import static main.GamePanel.BLACK;
 import static main.AI.count;
@@ -134,9 +135,12 @@ public class State  implements Comparable<State> {
     }
 
     public void goMove(int row, int col, int newRow, int newCol) {
-        updateScore(row, col, newRow, newCol);
-        updateBoard(row, col, newRow, newCol);
-
+        if(board[row][col] == 'k' && abs(newCol - col) == 2)
+            goCastle(row, col, newRow, newCol);
+        else {
+            updateScore(row, col, newRow, newCol);
+            updateBoard(row, col, newRow, newCol);
+        }
 
 //        System.out.println("going move: " + row + "," + col + " -> " + newRow + "," + newCol);
 //        printBoard();
@@ -148,8 +152,13 @@ public class State  implements Comparable<State> {
     }
 
     public void undoMove(int row, int col, int newRow, int newCol, char tempPiece){
-        undoBoard(row, col, newRow, newCol, tempPiece);
-
+        if(board[newRow][newCol] == 'k' && abs(newCol - col) == 2) {
+            System.out.println("undoing");
+            undoCastle(row, col, newRow, newCol);
+        }
+        else {
+            undoBoard(row, col, newRow, newCol, tempPiece);
+        }
 //        System.out.println("Undoing move: " + row + "," + col + " -> " + newRow + "," + newCol);
 
 //        printBoard();
@@ -589,7 +598,6 @@ public class State  implements Comparable<State> {
                 filterPiece(board[i][j], i, j, 1);
             }
         }
-
         score = 0;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
@@ -616,7 +624,7 @@ public class State  implements Comparable<State> {
 //            System.out.println();
 //        }
 //        System.out.println();
-        printBoard();
+//        printBoard();
     }
 
     private void filterPiece(char c, int row, int col, int add){
@@ -839,6 +847,105 @@ public class State  implements Comparable<State> {
         else this.color = WHITE;
     }
 
+    public int canCastle(){
+        boolean castle1 = true, castle2 = true;
+        if(!rook1Moved && !kingMoved && !castled && board[0][0] == 'r' && board[0][4] == 'k') {
+            for (int i = 1; i <= 3; i++) {
+                if (board[0][i] != ' ') castle1 = false;
+            }
+            for (int i = 2; i <= 4; i++) {
+                if (whiteChecked[0][i] != 0) castle1 = false;
+            }
+            if (whiteChecked[0][0] != 0) castle1 = false;
+        } else castle1 = false;
+        if(!rook2Moved && !kingMoved && !castled && board[0][7] == 'r' && board[0][4] == 'k') {
+            for (int i = 5; i <= 6; i++) {
+                if (board[0][i] != ' ') castle2 = false;
+            }
+            for (int i = 4; i <= 7; i++) {
+                if (whiteChecked[0][i] != 0) castle2 = false;
+            }
+        } else castle2 = false;
+        if(castle1 && castle2) return 3;
+        if(castle1) return 1;
+        if(castle2) return 2;
+        return 0;
+    }
+
+    public void goCastle(int row, int col, int newRow, int newCol){
+        if(newCol - col < 0){
+            System.out.println("Castle1");
+            filterPiece('k', 0, 4, -1);
+            filterPiece('r', 0, 0, -1);
+            score -= calculatePosPoint('k', 0, 4);
+            score -= calculatePosPoint('r', 0, 0);
+            board[0][0] = ' ';
+            board[0][2] = 'k';
+            board[0][3] = 'r';
+            board[0][4] = ' ';
+            filterPiece('k', 0, 2, 1);
+            filterPiece('r', 0, 3, 1);
+            score += calculatePosPoint('k', 0, 2);
+            score += calculatePosPoint('r', 0, 3);
+            castled = true;
+            rook1Moved = true;
+            kingMoved = true;
+        } else {
+            System.out.println("Castle2");
+            filterPiece('k', 0, 4, -1);
+            filterPiece('r', 0, 7, -1);
+            score -= calculatePosPoint('k', 0, 4);
+            score -= calculatePosPoint('r', 0, 7);
+            board[0][4] = ' ';
+            board[0][5] = 'r';
+            board[0][6] = 'k';
+            board[0][7] = ' ';
+            filterPiece('k', 0, 6, 1);
+            filterPiece('r', 0, 5, 1);
+            score += calculatePosPoint('k', 0, 6);
+            score += calculatePosPoint('r', 0, 5);
+            castled = true;
+            rook2Moved = true;
+            kingMoved = true;
+        }
+        score -= 100;
+        printBoard();
+    }
+
+    public void undoCastle(int row, int col, int newRow, int newCol){
+        if(newCol - col < 0){
+            System.out.println("Undoc1");
+            filterPiece('k', 0, 2, -1);
+            filterPiece('r', 0, 3, -1);
+            score -= calculatePosPoint('k', 0, 2);
+            score -= calculatePosPoint('r', 0, 3);
+            board[0][0] = 'r';
+            board[0][2] = ' ';
+            board[0][3] = ' ';
+            board[0][4] = 'k';
+            filterPiece('k', 0, 4, 1);
+            filterPiece('r', 0, 0, 1);
+            score += calculatePosPoint('k', 0, 4);
+            score += calculatePosPoint('r', 0, 0);
+        } else {
+            System.out.println("Undoc2");
+            filterPiece('k', 0, 6, -1);
+            filterPiece('r', 0, 5, -1);
+            score -= calculatePosPoint('k', 0, 6);
+            score -= calculatePosPoint('r', 0, 5);
+            board[0][4] = 'k';
+            board[0][5] = ' ';
+            board[0][6] = ' ';
+            board[0][7] = 'r';
+            filterPiece('k', 0, 4, 1);
+            filterPiece('r', 0, 7, 1);
+            score += calculatePosPoint('k', 0, 4);
+            score += calculatePosPoint('r', 0, 7);
+        }
+        printBoard();
+//        System.exit(0);
+    }
+
     public boolean isWhite(){
         return this.color == WHITE;
     }
@@ -878,11 +985,11 @@ public class State  implements Comparable<State> {
         System.out.println();
 
 
-        for(int i = 0; i < 8; i++){
-            for(int j = 0; j < 8; j++){
-                if(blackChecked[i][j] < 0) System.exit(0);
-            }
-        }
+//        for(int i = 0; i < 8; i++){
+//            for(int j = 0; j < 8; j++){
+//                if(blackChecked[i][j] < 0) System.exit(0);
+//            }
+//        }
 
 
     }
