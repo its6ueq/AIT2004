@@ -245,7 +245,7 @@ public class GamePanel extends JPanel implements Runnable {
         System.out.println("Start");
 
         int DEPTH = 0;
-        Boolean check = true;
+        boolean check = true, isCurrDepthDone = true;
         while(check){
             DEPTH++;
             for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : ai.getAllPossibleMoves(currState)) {
@@ -278,12 +278,15 @@ public class GamePanel extends JPanel implements Runnable {
                 stopA = System.currentTimeMillis();
                 if(stopA - startA > TimeLimit * 1000){
                     check = false;
+                    isCurrDepthDone = false;
                     break;
                 }
 //            bestMove.printBoard();
             }
-            bestMoveFinal = bestMove;
-            System.out.println("Depth: " + DEPTH + " with best Move Value: " + bestMoveValue);
+            if(isCurrDepthDone) {
+                bestMoveFinal = bestMove;
+                System.out.println("Depth: " + DEPTH + " with best Move Value: " + bestMoveValue);
+            }
         }
 
 //        System.exit(0);
