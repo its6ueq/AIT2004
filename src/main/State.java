@@ -142,9 +142,9 @@ public class State  implements Comparable<State> {
 //        printBoard();
 
         changeColor();
-
-//        if(color == BLACK && blackChecked[WKingX][WKingY] != 0) score -= 100000;
+        if(color == BLACK && blackChecked[WKingX][WKingY] != 0) score -= 100000;
         count++;
+
     }
 
     public void undoMove(int row, int col, int newRow, int newCol, char tempPiece){
@@ -214,6 +214,17 @@ public class State  implements Comparable<State> {
 
 
     private void updateBoard(int row, int col, int newRow, int newCol){
+        if(board[row][col] == 'K') {
+            WKingX = newRow;
+            WKingY = newCol;
+//            System.out.println(row + " " + col + " " + newRow + " " + newCol);
+//            printBoard();
+//            System.exit(0);
+        }
+        if (board[row][col] == 'k') {
+            BKingX = newRow;
+            BKingY = newCol;
+        }
 
         if(row == 0 && col == 0) rook1Moved = true;
         if(row == 0 && col == 7) rook2Moved = true;
@@ -351,13 +362,7 @@ public class State  implements Comparable<State> {
 
 //        System.out.println(7);
 
-        if(row == WKingX && col == WKingY) {
-            WKingX = newRow;
-            WKingY = newCol;
-        } else if (row == BKingX && col == BKingY) {
-            BKingX = newRow;
-            BKingY = newCol;
-        }
+
 
 
 
@@ -381,6 +386,39 @@ public class State  implements Comparable<State> {
 
 
     private void undoBoard(int row, int col, int newRow, int newCol, char piece){
+        if(board[newRow][newCol] == 'K') {
+            WKingX = row;
+            WKingY = col;
+//            System.out.println(row + " " + col + " " + newRow + " " + newCol);
+//            printBoard();
+//            System.exit(0);
+        }
+        if(board[newRow][newCol] == 'k') {
+            BKingX = row;
+            BKingY = col;
+        }
+        if(piece == 'k'){
+            BKingX = newRow;
+            BKingY = newCol;
+        }
+        if(piece == 'K'){
+            WKingX = newRow;
+            WKingY = newCol;
+        }
+//        if(newRow == WKingX && newCol == WKingY) {
+//            WKingX = row;
+//            WKingY = col;
+////            System.out.println(row + " " + col + " " + newRow + " " + newCol);
+////            printBoard();
+////            System.exit(0);
+//        }
+//        if (newRow == BKingX && newCol == BKingY) {
+//            BKingX = row;
+//            BKingY = col;
+////            System.out.println(row + " " + col + " " + newRow + " " + newCol);
+////            printBoard();
+////            System.exit(0);
+//        }
         Set<Pair<Integer, Integer>> updateBishop = new HashSet<>();
         Set<Pair<Integer, Integer>> updateRook = new HashSet<>();
 
@@ -500,6 +538,9 @@ public class State  implements Comparable<State> {
             }
         }
 
+
+
+
 //        System.out.println(5);
 
         filterPiece(board[newRow][newCol], newRow, newCol, -1);
@@ -513,13 +554,7 @@ public class State  implements Comparable<State> {
         filterPiece(board[newRow][newCol], newRow, newCol, 1);
 //        System.out.println(7);
 
-        if(newRow == WKingX && newCol == WKingY) {
-            WKingX = row;
-            WKingY = col;
-        } else if (newRow == BKingX && newCol == BKingY) {
-            BKingX = row;
-            BKingY = col;
-        }
+
 
 
 
@@ -808,6 +843,8 @@ public class State  implements Comparable<State> {
         return this.color == WHITE;
     }
     public void printBoard() {
+        if(validState()) System.out.println("valid state");
+        else System.out.println("not valid");
         System.out.println(color == 1 ? "Black" : "White");
         System.out.println("Count: " + count);
         if(endGame) System.out.println("endgame");

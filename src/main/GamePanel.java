@@ -12,7 +12,7 @@ import static main.AI.*;
 
 
 public class GamePanel extends JPanel implements Runnable {
-    private static final int DEPTH = 6;
+    private static final int DEPTH = 5;
 
     public static final int WIDTH = 1100;
     public static final int HEIGHT = 800;
@@ -270,6 +270,7 @@ public class GamePanel extends JPanel implements Runnable {
             currState.rook2Moved = tempRook2Moved;
             currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
 //            bestMove.printBoard();
+
         }
         System.out.println("Best Move Value: " + bestMoveValue);
 //        System.exit(0);
