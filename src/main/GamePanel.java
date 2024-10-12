@@ -295,7 +295,7 @@ public class GamePanel extends JPanel implements Runnable {
                     isCurrDepthDone = false;
                     break;
                 }
-                check = false;
+                //check = false;
 //            bestMove.printBoard();
             }
             if(isCurrDepthDone) {
