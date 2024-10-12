@@ -7,3 +7,4 @@
 - Minimax search algorithm for best move/optional depth/ optimal time search
 - Alpha-beta search tree pruning
 - Automatically increase depth until reached maximum time
+- depth 5 takes 3 - 20s, depth 6 takes 10 - 60s
