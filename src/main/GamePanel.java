@@ -18,6 +18,7 @@ public class GamePanel extends JPanel implements Runnable {
     public static final int WIDTH = 1100;
     public static final int HEIGHT = 800;
     final int FPS = 60;
+    public boolean redoPressed = false;
     Thread gameThread;
     Board board = new Board ();
     Mouse mouse = new Mouse ();
@@ -26,12 +27,16 @@ public class GamePanel extends JPanel implements Runnable {
     State currState;
     public static ArrayList<Piece> pieces = new ArrayList<Piece> ();
     public static ArrayList<Piece> simPieces = new ArrayList<> ();
+
+    ArrayList<char[][]> prevBoards = new ArrayList<> ();
+
     ArrayList<Piece> promoPieces = new ArrayList<> ();
     Piece activeP, checkingP;
     public static Piece castlingP;
     public static final int WHITE = 0;
     public static final int BLACK = 1;
     int currentColor = WHITE;
+    int redoX = 8 * Board.SQUARE_SIZE, redoY = 4 * Board.SQUARE_SIZE;
 
     long startA, stopA;
 
@@ -122,6 +127,13 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void update(){
+        if (mouse.pressed && mouse.x >= redoX && mouse.x <= redoX + Board.SQUARE_SIZE &&
+                mouse.y >= redoY && mouse.y <= redoY + Board.SQUARE_SIZE && !redoPressed) {
+            redo();
+            redoPressed = true;
+            return;
+        }
+
         if (promotion) {
             promoting();
         }
@@ -149,6 +161,7 @@ public class GamePanel extends JPanel implements Runnable {
             else{
                 if(activeP != null){
                     if(validSquare){
+                        prevBoards.add(copyBoard(current_board));
                         copyPieces (simPieces, pieces);
                         activeP.updatePosition ();
                         if (castlingP != null) {
@@ -164,6 +177,7 @@ public class GamePanel extends JPanel implements Runnable {
                         else {
                             changePlayer();
                         }
+                        updateBoard();
                     }
                     else{
                         copyPieces (pieces, simPieces);
@@ -173,7 +187,6 @@ public class GamePanel extends JPanel implements Runnable {
                 }
             }
         }
-
     }
 
     private void updateBoard(){
@@ -193,6 +206,7 @@ public class GamePanel extends JPanel implements Runnable {
             System.out.println();
         }
     }
+
 
     private void updateBoardWithBestMove(char[][] bestMove) {
         // Update the current_board array
@@ -244,7 +258,7 @@ public class GamePanel extends JPanel implements Runnable {
         currState.endGame = sumPoint <= 1800;
         System.out.println("Start");
 
-        int DEPTH = 0;
+        int DEPTH = 4;
         boolean check = true, isCurrDepthDone = true;
         while(check){
             DEPTH++;
@@ -281,6 +295,7 @@ public class GamePanel extends JPanel implements Runnable {
                     isCurrDepthDone = false;
                     break;
                 }
+                check = false;
 //            bestMove.printBoard();
             }
             if(isCurrDepthDone) {
@@ -462,6 +477,34 @@ public class GamePanel extends JPanel implements Runnable {
             }
         }
     }
+
+    private char[][] copyBoard(char[][] board){
+        char[][] newBoard = new char[8][8];
+        for (int i = 0; i < 8; i++){
+            for (int j = 0; j < 8; j++){
+                newBoard[i][j] = board[i][j];
+            }
+        }
+
+        return newBoard;
+    }
+
+    public void redo(){
+        if(!prevBoards.isEmpty()){
+            current_board = prevBoards.getLast();
+            prevBoards.removeLast();
+            updateBoardWithBestMove(current_board);
+            System.out.println ("REDO:");
+            for (int i = 0; i < 8; i++){
+                for (int j = 0; j < 8; j++){
+                    System.out.print(current_board[i][j] + " ");
+                }
+                System.out.println();
+            }
+            //changePlayer();
+        }
+    }
+
     public void paintComponent(Graphics g){
         super.paintComponent (g);
 
@@ -524,5 +567,12 @@ public class GamePanel extends JPanel implements Runnable {
                 }
             }
         }
+
+        //REDO BUTTON
+        g2.setColor(Color.RED);
+        g2.fillOval(redoX, redoY, Board.SQUARE_SIZE, Board.SQUARE_SIZE);
+        g2.setColor(Color.WHITE);
+        g2.setFont(new Font("Book Antiqua", Font.PLAIN, 25));
+        g2.drawString("REDO", redoX + 15, redoY + 50);
     }
 }
