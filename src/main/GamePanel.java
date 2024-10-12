@@ -258,7 +258,7 @@ public class GamePanel extends JPanel implements Runnable {
         currState.endGame = sumPoint <= 1800;
         System.out.println("Start");
 
-        int DEPTH = 4;
+        int DEPTH = 0;
         boolean check = true, isCurrDepthDone = true;
         while(check){
             DEPTH++;
@@ -472,6 +472,7 @@ public class GamePanel extends JPanel implements Runnable {
                     copyPieces(simPieces, pieces);
                     activeP = null;
                     promotion = false;
+                    updateBoard();
                     changePlayer();
                 }
             }
