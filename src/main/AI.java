@@ -17,7 +17,7 @@ public class AI {
 
     public int  alphaBetaMax(int alpha, int beta, int depth, State currState) {
 //        System.out.println("max");
-        a++;
+//        a++;
 //        if(a== 100) System.exit(0);
 //        System.out.println("Max Depth: " + depth);
         if (depth == 0) {
@@ -27,7 +27,6 @@ public class AI {
         int bestValue = Integer.MIN_VALUE;
         LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves =  getAllPossibleMoves(currState);
 //        System.out.println("Possible Moves: " + possibleMoves.size());
-        if(possibleMoves.isEmpty()) return currState.getScore();
         for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : possibleMoves) {
 //            if(a > 0) a--;
 //            else System.exit(0);
@@ -71,6 +70,31 @@ public class AI {
 
 
 
+
+        }
+
+        if(bestValue == -2147483648) {
+            return currState.score;
+//            for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : possibleMoves) {
+//                char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
+//                int tempScore = currState.score;
+//                Boolean tempCastled = currState.castled;
+//                Boolean tempKingMoved = currState.kingMoved;
+//                Boolean tempRook1Moved = currState.rook1Moved;
+//                Boolean tempRook2Moved = currState.rook2Moved;
+//                currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
+//                currState.printBoard();
+//                currState.score = tempScore;
+//                currState.castled = tempCastled;
+//                currState.kingMoved = tempKingMoved;
+//                currState.rook1Moved = tempRook1Moved;
+//                currState.rook2Moved = tempRook2Moved;
+//
+//                currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
+//            }
+//            System.out.println("Best Value: " + bestValue);
+//            System.exit(0);
+
         }
         return bestValue;
     }
@@ -84,7 +108,6 @@ public class AI {
         int bestValue = Integer.MAX_VALUE;
         LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves = getAllPossibleMoves(currState);
 //        System.out.println("Possible Moves: " + possibleMoves.size());
-        if(possibleMoves.isEmpty()) return currState.getScore();
         for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : possibleMoves) {
             char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
             int tempScore = currState.score;
@@ -126,6 +149,29 @@ public class AI {
             currState.rook2Moved = tempRook2Moved;
 
             currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
+
+        }
+        if(bestValue == 2147483647) {
+            return currState.score;
+//            for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : possibleMoves) {
+//                char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
+//                int tempScore = currState.score;
+//                Boolean tempCastled = currState.castled;
+//                Boolean tempKingMoved = currState.kingMoved;
+//                Boolean tempRook1Moved = currState.rook1Moved;
+//                Boolean tempRook2Moved = currState.rook2Moved;
+//                currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
+//                currState.printBoard();
+//                currState.score = tempScore;
+//                currState.castled = tempCastled;
+//                currState.kingMoved = tempKingMoved;
+//                currState.rook1Moved = tempRook1Moved;
+//                currState.rook2Moved = tempRook2Moved;
+//
+//                currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
+//            }
+//            System.out.println("Best Value: " + bestValue);
+//            System.exit(0);
 
         }
         return bestValue;
@@ -187,11 +233,11 @@ public class AI {
 
         // Move forward
         if (isWithinBoard(row + direction, col) && prevState.getIndex(row + direction, col) == ' ') {
-            addMove(row, col, row + direction, col, moves, Character.isUpperCase(piece), true);
+            addMove(row, col, row + direction, col, moves, true);
 
             // Double move from starting position
             if (row == startRow && prevState.getIndex(row + 2 * direction, col) == ' ') {
-                addMove(row, col, row + 2 * direction, col, moves, Character.isUpperCase(piece), true);
+                addMove(row, col, row + 2 * direction, col, moves, true);
             }
         }
 
@@ -199,7 +245,7 @@ public class AI {
         for (int i = -1; i <= 1; i += 2) {
             if (isWithinBoard(row + direction, col + i) &&
                     isOpponentPiece(prevState.getIndex(row + direction, col + i), piece)) {
-                addMove(row, col, row + direction, col + i, moves, Character.isUpperCase(piece), false);
+                addMove(row, col, row + direction, col + i, moves, false);
             }
         }
     }
@@ -211,7 +257,7 @@ public class AI {
             int newCol = col + move[1];
             if (isWithinBoard(newRow, newCol) &&
                     (prevState.getIndex(newRow, newCol) == ' ' || isOpponentPiece(prevState.getIndex(newRow, newCol), piece))) {
-                addMove(row, col, newRow, newCol, moves, Character.isUpperCase(piece), false);
+                addMove(row, col, newRow, newCol, moves, false);
             }
         }
     }
@@ -233,14 +279,13 @@ public class AI {
 
     private void generateKingMoves(State prevstate, int row, int col, char piece, LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> currState) {
         int[][] directions = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
-        boolean isWhite = Character.isUpperCase(piece);
 
         for (int[] dir : directions) {
             int newRow = row + dir[0];
             int newCol = col + dir[1];
             if (isWithinBoard(newRow, newCol) &&
                     (prevstate.getIndex(newRow, newCol) == ' ' || isOpponentPiece(prevstate.getIndex(newRow, newCol), piece))) {
-                addMove(row, col, newRow, newCol, currState, isWhite, false);
+                addMove(row, col, newRow, newCol, currState, false);
             }
         }
 
@@ -253,10 +298,10 @@ public class AI {
             int newCol = col + dir[1];
             while (isWithinBoard(newRow, newCol)) {
                 if (prevState.getIndex(newRow, newCol) == ' ') {
-                    addMove(row, col, newRow, newCol, moves, Character.isUpperCase(piece), false);
+                    addMove(row, col, newRow, newCol, moves, false);
                 } else {
                     if (isOpponentPiece(prevState.getIndex(newRow, newCol), piece)) {
-                        addMove(row, col, newRow, newCol, moves, Character.isUpperCase(piece), false);
+                        addMove(row, col, newRow, newCol, moves, false);
                     }
                     break;
                 }
@@ -275,7 +320,7 @@ public class AI {
                 (Character.isLowerCase(piece) && Character.isUpperCase(targetPiece));
     }
 
-    private void addMove(int row, int col, int newRow, int newCol, LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves, boolean isWhite, boolean isPawn) {
+    private void addMove(int row, int col, int newRow, int newCol, LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves, boolean isPawn) {
 
         Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> tempMoves = new Pair<>(new Pair<>(row, col), new Pair<>(newRow, newCol));
         if(isPawn) moves.addLast(tempMoves);
