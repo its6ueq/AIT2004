@@ -8,11 +8,12 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import static java.lang.Math.sqrt;
 import static main.AI.*;
 
 
 public class GamePanel extends JPanel implements Runnable {
-    private static final int DEPTH = 5;
+    private static final int TimeLimit = 30;
 
     public static final int WIDTH = 1100;
     public static final int HEIGHT = 800;
@@ -236,43 +237,58 @@ public class GamePanel extends JPanel implements Runnable {
         startA = System.currentTimeMillis();
 
         int bestMoveValue = Integer.MAX_VALUE;
-        Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> bestMove = null;
+        Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> bestMove = null, bestMoveFinal = null;
 
         currState = new State(current_board);
-
-        currState.endGame = calculateTotalMaterial() <= 1800;
+        int sumPoint =  calculateTotalMaterial();
+        currState.endGame = sumPoint <= 1800;
         System.out.println("Start");
-        for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : ai.getAllPossibleMoves(currState)) {
+
+        int DEPTH = 0;
+        boolean check = true, isCurrDepthDone = true;
+        while(check){
+            DEPTH++;
+            for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : ai.getAllPossibleMoves(currState)) {
 //            System.out.println("step"+ move.getL().getL() + " " + move.getL().getR());
-            char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
-            int tempScore = currState.score;
-            Boolean tempCastled = currState.castled;
-            Boolean tempKingMoved = currState.kingMoved;
-            Boolean tempRook1Moved = currState.rook1Moved;
-            Boolean tempRook2Moved = currState.rook2Moved;
+                char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
+                int tempScore = currState.score;
+                Boolean tempCastled = currState.castled;
+                Boolean tempKingMoved = currState.kingMoved;
+                Boolean tempRook1Moved = currState.rook1Moved;
+                Boolean tempRook2Moved = currState.rook2Moved;
 
-            currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
+                currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
 
-            int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, DEPTH - 1, currState);
+                int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, DEPTH - 1, currState);
 
-            System.out.println("Move Value: " + moveValue);
+                System.out.println("Move Value: " + moveValue);
 //            if(moveValue == 2147483647) currState.printBoard();
 //            System.out.println("Best Value: " + bestMoveValue);
-            if (moveValue < bestMoveValue) {
-                bestMoveValue = moveValue;
-                bestMove = move;
-            }
+                if (moveValue < bestMoveValue) {
+                    bestMoveValue = moveValue;
+                    bestMove = move;
+                }
 
-            currState.score = tempScore;
-            currState.castled = tempCastled;
-            currState.kingMoved = tempKingMoved;
-            currState.rook1Moved = tempRook1Moved;
-            currState.rook2Moved = tempRook2Moved;
-            currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
+                currState.score = tempScore;
+                currState.castled = tempCastled;
+                currState.kingMoved = tempKingMoved;
+                currState.rook1Moved = tempRook1Moved;
+                currState.rook2Moved = tempRook2Moved;
+                currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
+                stopA = System.currentTimeMillis();
+                if(stopA - startA > TimeLimit * 1000){
+                    check = false;
+                    isCurrDepthDone = false;
+                    break;
+                }
 //            bestMove.printBoard();
-
+            }
+            if(isCurrDepthDone) {
+                bestMoveFinal = bestMove;
+                System.out.println("Depth: " + DEPTH + " with best Move Value: " + bestMoveValue);
+            }
         }
-        System.out.println("Best Move Value: " + bestMoveValue);
+
 //        System.exit(0);
 //        for (int i = 0; i < 8; i++){
 //            for (int j = 0; j < 8; j++){
@@ -281,7 +297,7 @@ public class GamePanel extends JPanel implements Runnable {
 //            System.out.println();
 //        }
 
-        currState.goMove(bestMove.getL().getL(), bestMove.getL().getR(), bestMove.getR().getL(), bestMove.getR().getR());
+        currState.goMove(bestMoveFinal.getL().getL(), bestMoveFinal.getL().getR(), bestMoveFinal.getR().getL(), bestMoveFinal.getR().getR());
 
         for(int i = 0; i < 8; i++){
             if(currState.board[7][i] == 'p') currState.board[7][i] = 'q';
@@ -295,7 +311,7 @@ public class GamePanel extends JPanel implements Runnable {
 
 
 
-        stopA = System.currentTimeMillis();
+
 
     }
 
@@ -309,6 +325,7 @@ public class GamePanel extends JPanel implements Runnable {
                 }
             }
         }
+        System.out.println("total point: " + totalMaterial);
         return totalMaterial;
     }
 
