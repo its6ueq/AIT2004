@@ -15,8 +15,8 @@ import static main.AI.*;
 public class GamePanel extends JPanel implements Runnable {
     private static final int TimeLimit = 30;
 
-    public static final int WIDTH = 1100;
-    public static final int HEIGHT = 800;
+    public static final int WIDTH = 990;
+    public static final int HEIGHT = 720;
     final int FPS = 60;
     public boolean redoPressed = false;
     Thread gameThread;
@@ -258,7 +258,7 @@ public class GamePanel extends JPanel implements Runnable {
         currState.endGame = sumPoint <= 1800;
         System.out.println("Start");
 
-        int DEPTH = 0;
+        int DEPTH = 4;
         boolean check = true, isCurrDepthDone = true;
         while(check){
             DEPTH++;
@@ -295,7 +295,7 @@ public class GamePanel extends JPanel implements Runnable {
                     isCurrDepthDone = false;
                     break;
                 }
-                //check = false;
+                check = false;
 //            bestMove.printBoard();
             }
             if(isCurrDepthDone) {
@@ -540,7 +540,7 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2.setFont(new Font("Book Antiqua", Font.PLAIN, 40));
+        g2.setFont(new Font("Book Antiqua", Font.PLAIN, 35));
         g2.setColor(Color.WHITE);
 
         if (promotion) {
@@ -550,21 +550,21 @@ public class GamePanel extends JPanel implements Runnable {
         }
         else {
             if (currentColor == WHITE) {
-                g2.drawString("White's turn", 850, 250);
-                g2.drawString("Time: ", 825, 550);
+                g2.drawString("White's turn", 750, 250);
+                g2.drawString("Time: ", 725, 550);
                 g2.drawString(String.valueOf((double)(stopA - startA)/1000), 825, 650);
                 if (checkingP != null && checkingP.color == BLACK) {
-                    g2.drawString("The King", 840, 350);
-                    g2.drawString("is in check!", 840, 450);
+                    g2.drawString("The King", 740, 350);
+                    g2.drawString("is in check!", 740, 450);
                 }
             }
             else {
-                g2.drawString("Black's turn", 850, 150);
-                g2.drawString("Thinking", 850, 250);
+                g2.drawString("Black's turn", 750, 150);
+                g2.drawString("Thinking", 750, 250);
 
                 if (checkingP != null && checkingP.color == WHITE) {
-                    g2.drawString("The King", 840, 350);
-                    g2.drawString("is in check!", 840, 450);
+                    g2.drawString("The King", 740, 350);
+                    g2.drawString("is in check!", 740, 450);
                 }
             }
         }
@@ -574,6 +574,6 @@ public class GamePanel extends JPanel implements Runnable {
         g2.fillOval(redoX, redoY, Board.SQUARE_SIZE, Board.SQUARE_SIZE);
         g2.setColor(Color.WHITE);
         g2.setFont(new Font("Book Antiqua", Font.PLAIN, 25));
-        g2.drawString("REDO", redoX + 15, redoY + 50);
+        g2.drawString("REDO", redoX + 10, redoY + 50);
     }
 }
