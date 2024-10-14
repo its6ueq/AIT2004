@@ -580,6 +580,8 @@ public class GamePanel extends JPanel implements Runnable {
             if(endGame == 1) g2.drawString("BLACK WIN", 750, 150);
             if(endGame == 2) g2.drawString("WHITE WIN", 750, 250);
             if(endGame == 3) g2.drawString("STALEMATE", 750, 350);
+            g2.drawString("Time: ", 725, 550);
+            g2.drawString(String.valueOf((double)(stopA - startA)/1000), 825, 650);
         }
 
         //REDO BUTTON

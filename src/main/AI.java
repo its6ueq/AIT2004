@@ -2,6 +2,7 @@ package main;
 
 import java.util.*;
 
+import static main.GamePanel.BLACK;
 import static main.GamePanel.WHITE;
 import static main.State.*;
 
@@ -352,13 +353,48 @@ public class AI {
     // 3: stalemate
     public int endGame(State currState){
         if(getAllPossibleMoves(currState).isEmpty()) return 3;
-        LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves = new LinkedList<>();
-        generateKingMoves(currState, currState.BKingX, currState.BKingY, currState.board[currState.BKingX][currState.BKingY], moves);
-        if(currState.whiteChecked[currState.BKingX][currState.BKingY] != 0 && moves.isEmpty()) return 2;
-        moves = new LinkedList<>();
-        generateKingMoves(currState, currState.WKingX, currState.WKingY, currState.board[currState.WKingX][currState.WKingY], moves);
-        if(currState.whiteChecked[currState.WKingX][currState.WKingY] != 0 && moves.isEmpty()) return 1;
-
+        if(!canMove(currState)){
+            if(currState.color == WHITE) return 2;
+            else return 1;
+        }
         return 0;
+    }
+
+    private boolean canMove(State currState) {
+        LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves = getAllPossibleMoves(currState);
+        if( currState.whiteChecked[currState.BKingX][currState.BKingY] == 0 && currState.blackChecked[currState.WKingX][currState.WKingY] == 0)
+            return true;
+        for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : possibleMoves) {
+
+            char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
+            int tempScore = currState.score;
+            Boolean tempCastled = currState.castled;
+            Boolean tempKingMoved = currState.kingMoved;
+            Boolean tempRook1Moved = currState.rook1Moved;
+            Boolean tempRook2Moved = currState.rook2Moved;
+
+            currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
+            if(!currState.validState()) continue;
+            if ((currState.color == WHITE && currState.whiteChecked[currState.BKingX][currState.BKingY] != 0) ||
+                    (currState.color == BLACK && currState.blackChecked[currState.WKingX][currState.WKingY] != 0)){
+                currState.score = tempScore;
+                currState.castled = tempCastled;
+                currState.kingMoved = tempKingMoved;
+                currState.rook1Moved = tempRook1Moved;
+                currState.rook2Moved = tempRook2Moved;
+//                currState.printBoard();
+                currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
+                return true;
+            }
+
+            currState.score = tempScore;
+            currState.castled = tempCastled;
+            currState.kingMoved = tempKingMoved;
+            currState.rook1Moved = tempRook1Moved;
+            currState.rook2Moved = tempRook2Moved;
+            currState.undoMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR(), tempPiece);
+
+        }
+        return false;
     }
 }
