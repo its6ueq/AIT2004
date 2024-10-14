@@ -6,6 +6,7 @@ import piece.*;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import static main.Board.SQUARE_SIZE;
 
@@ -280,7 +281,9 @@ public class GamePanel extends JPanel implements Runnable {
         boolean check = true, isCurrDepthDone = true;
         while(check){
             DEPTH++;
-            for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : ai.getAllPossibleMoves(currState)) {
+            LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves = new LinkedList<>();
+            ai.getAllPossibleMoves(currState, moves);
+            for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : moves) {
 //            System.out.println("step"+ move.getL().getL() + " " + move.getL().getR());
                 char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
                 int tempScore = currState.score;
