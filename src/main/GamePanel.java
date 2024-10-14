@@ -6,10 +6,6 @@ import piece.*;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.LinkedList;
-
-import static java.lang.Math.sqrt;
-import static main.AI.*;
 
 
 public class GamePanel extends JPanel implements Runnable {
@@ -39,6 +35,8 @@ public class GamePanel extends JPanel implements Runnable {
     int redoX = 8 * Board.SQUARE_SIZE, redoY = 4 * Board.SQUARE_SIZE;
 
     long startA, stopA;
+
+    int endGame = 0;
 
     boolean canMove;
     boolean validSquare;
@@ -127,6 +125,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void update(){
+        if(endGame != 0) return;
         if (mouse.pressed && mouse.x >= redoX && mouse.x <= redoX + Board.SQUARE_SIZE &&
                 mouse.y >= redoY && mouse.y <= redoY + Board.SQUARE_SIZE && !redoPressed) {
             redo();
@@ -140,6 +139,7 @@ public class GamePanel extends JPanel implements Runnable {
         else {
             if (currentColor == BLACK) {
                 aiMove();
+                endGame = checkEndGame();
                 return;
             }
             if(mouse.pressed){
@@ -178,6 +178,7 @@ public class GamePanel extends JPanel implements Runnable {
                             changePlayer();
                         }
                         updateBoard();
+                        endGame = checkEndGame();
                     }
                     else{
                         copyPieces (pieces, simPieces);
@@ -187,6 +188,12 @@ public class GamePanel extends JPanel implements Runnable {
                 }
             }
         }
+    }
+
+    private int checkEndGame(){
+        State currState = new State(current_board);
+        System.out.println(ai.endGame(currState));
+        return ai.endGame(currState);
     }
 
     private void updateBoard(){
@@ -542,31 +549,37 @@ public class GamePanel extends JPanel implements Runnable {
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setFont(new Font("Book Antiqua", Font.PLAIN, 35));
         g2.setColor(Color.WHITE);
+        if (endGame == 0){
 
-        if (promotion) {
-            for (Piece piece : promoPieces) {
-                g2.drawImage(piece.image, piece.getX(piece.col), piece.getY(piece.row), Board.SQUARE_SIZE, Board.SQUARE_SIZE, null);
-            }
-        }
-        else {
-            if (currentColor == WHITE) {
-                g2.drawString("White's turn", 750, 250);
-                g2.drawString("Time: ", 725, 550);
-                g2.drawString(String.valueOf((double)(stopA - startA)/1000), 825, 650);
-                if (checkingP != null && checkingP.color == BLACK) {
-                    g2.drawString("The King", 740, 350);
-                    g2.drawString("is in check!", 740, 450);
+            if (promotion) {
+                for (Piece piece : promoPieces) {
+                    g2.drawImage(piece.image, piece.getX(piece.col), piece.getY(piece.row), Board.SQUARE_SIZE, Board.SQUARE_SIZE, null);
                 }
             }
             else {
-                g2.drawString("Black's turn", 750, 150);
-                g2.drawString("Thinking", 750, 250);
+                if (currentColor == WHITE) {
+                    g2.drawString("White's turn", 750, 250);
+                    g2.drawString("Time: ", 725, 550);
+                    g2.drawString(String.valueOf((double)(stopA - startA)/1000), 825, 650);
+                    if (checkingP != null && checkingP.color == BLACK) {
+                        g2.drawString("The King", 740, 350);
+                        g2.drawString("is in check!", 740, 450);
+                    }
+                }
+                else {
+                    g2.drawString("Black's turn", 750, 150);
+                    g2.drawString("Thinking", 750, 250);
 
-                if (checkingP != null && checkingP.color == WHITE) {
-                    g2.drawString("The King", 740, 350);
-                    g2.drawString("is in check!", 740, 450);
+                    if (checkingP != null && checkingP.color == WHITE) {
+                        g2.drawString("The King", 740, 350);
+                        g2.drawString("is in check!", 740, 450);
+                    }
                 }
             }
+        } else{
+            if(endGame == 1) g2.drawString("BLACK WIN", 750, 150);
+            if(endGame == 2) g2.drawString("WHITE WIN", 750, 250);
+            if(endGame == 3) g2.drawString("STALEMATE", 750, 350);
         }
 
         //REDO BUTTON

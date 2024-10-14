@@ -49,11 +49,6 @@ public class State  implements Comparable<State> {
         score = 0;
         endGame = false;
 
-        WKingX = 7;
-        WKingY = 4;
-        BKingX = 0;
-        BKingY = 4;
-
         pawnPoint = new int[][]{
                 {900,900,900,900,900,900,900,900},
                 { 50, 50, 50, 50, 50, 50, 50, 50},
@@ -596,6 +591,13 @@ public class State  implements Comparable<State> {
         for(int i = 0; i < board.length; i++){
             for(int j = 0; j < board[0].length; j++){
                 filterPiece(board[i][j], i, j, 1);
+                if(board[i][j] == 'k') {
+                    BKingX = i;
+                    BKingY = j;
+                } else if(board[i][j] == 'K'){
+                    WKingX = i;
+                    WKingY = j;
+                }
             }
         }
         score = 0;
@@ -949,6 +951,18 @@ public class State  implements Comparable<State> {
     public boolean isWhite(){
         return this.color == WHITE;
     }
+
+    public boolean kingCanMove(int row, int col, int newRow, int newCol){
+        if(board[row][col] == 'k'){
+            if(whiteChecked[newRow][newCol] != 0) return false;
+        }
+        if(board[row][col] == 'K'){
+            if(blackChecked[newRow][newCol] != 0) return false;
+        }
+        return true;
+    }
+
+
     public void printBoard() {
         if(validState()) System.out.println("valid state");
         else System.out.println("not valid");

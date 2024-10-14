@@ -2,6 +2,7 @@ package main;
 
 import java.util.*;
 
+import static main.GamePanel.WHITE;
 import static main.State.*;
 
 public class AI {
@@ -285,7 +286,9 @@ public class AI {
             int newCol = col + dir[1];
             if (isWithinBoard(newRow, newCol) &&
                     (prevstate.getIndex(newRow, newCol) == ' ' || isOpponentPiece(prevstate.getIndex(newRow, newCol), piece))) {
-                addMove(row, col, newRow, newCol, moves, false);
+                if(prevstate.kingCanMove(row, col, newRow, newCol)){
+                    addMove(row, col, newRow, newCol, moves, false);
+                }
             }
         }
 
@@ -343,15 +346,19 @@ public class AI {
 
     }
 
+    // 0: continue
+    // 1: black win
+    // 2: white win
+    // 3: stalemate
+    public int endGame(State currState){
+        if(getAllPossibleMoves(currState).isEmpty()) return 3;
+        LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves = new LinkedList<>();
+        generateKingMoves(currState, currState.BKingX, currState.BKingY, currState.board[currState.BKingX][currState.BKingY], moves);
+        if(currState.whiteChecked[currState.BKingX][currState.BKingY] != 0 && moves.isEmpty()) return 2;
+        moves = new LinkedList<>();
+        generateKingMoves(currState, currState.WKingX, currState.WKingY, currState.board[currState.WKingX][currState.WKingY], moves);
+        if(currState.whiteChecked[currState.WKingX][currState.WKingY] != 0 && moves.isEmpty()) return 1;
 
-
-    private void addCastle(char[][] board){
-        char[][] newBoard1 = new char[8][8];
-        char[][] newBoard2 = new char[8][8];
-
-        for (int i = 0; i < 8; i++) {
-            System.arraycopy(board[i], 0, newBoard1[i], 0, 8);
-            System.arraycopy(board[i], 0, newBoard2[i], 0, 8);
-        }
+        return 0;
     }
 }
