@@ -7,6 +7,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 
+import static main.Board.SQUARE_SIZE;
+
 
 public class GamePanel extends JPanel implements Runnable {
     private static final int TimeLimit = 30;
@@ -25,6 +27,11 @@ public class GamePanel extends JPanel implements Runnable {
     public static ArrayList<Piece> simPieces = new ArrayList<> ();
 
     ArrayList<char[][]> prevBoards = new ArrayList<> ();
+    private ArrayList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> whitePrevMoves = new ArrayList<>();
+    private ArrayList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> blackPrevMoves = new ArrayList<>();
+
+    private Pair<Integer, Integer> playerMoveFrom;
+    private Pair<Integer, Integer> playerMoveTo;
 
     ArrayList<Piece> promoPieces = new ArrayList<> ();
     Piece activeP, checkingP;
@@ -32,7 +39,7 @@ public class GamePanel extends JPanel implements Runnable {
     public static final int WHITE = 0;
     public static final int BLACK = 1;
     int currentColor = WHITE;
-    int redoX = 8 * Board.SQUARE_SIZE, redoY = 4 * Board.SQUARE_SIZE;
+    int redoX = 8 * SQUARE_SIZE, redoY = 4 * SQUARE_SIZE;
 
     long startA, stopA;
 
@@ -126,8 +133,8 @@ public class GamePanel extends JPanel implements Runnable {
 
     private void update(){
         if(endGame != 0) return;
-        if (mouse.pressed && mouse.x >= redoX && mouse.x <= redoX + Board.SQUARE_SIZE &&
-                mouse.y >= redoY && mouse.y <= redoY + Board.SQUARE_SIZE && !redoPressed) {
+        if (mouse.pressed && mouse.x >= redoX && mouse.x <= redoX + SQUARE_SIZE &&
+                mouse.y >= redoY && mouse.y <= redoY + SQUARE_SIZE && !redoPressed) {
             redo();
             redoPressed = true;
             return;
@@ -147,9 +154,12 @@ public class GamePanel extends JPanel implements Runnable {
                 if(activeP == null){
                     for(Piece piece : simPieces){
                         if(piece.color == currentColor &&
-                                piece.col == mouse.x/Board.SQUARE_SIZE &&
-                                piece.row == mouse.y/Board.SQUARE_SIZE){
+                                piece.col == mouse.x/ SQUARE_SIZE &&
+                                piece.row == mouse.y/ SQUARE_SIZE){
                             activeP = piece;
+                            playerMoveFrom = new Pair<>(activeP.col, activeP.row);
+
+                            break;
                         }
                     }
                 }
@@ -161,13 +171,14 @@ public class GamePanel extends JPanel implements Runnable {
             else{
                 if(activeP != null){
                     if(validSquare){
+                        playerMoveTo = new Pair<>(activeP.col, activeP.row);
+                        whitePrevMoves.add(new Pair<>(playerMoveFrom, playerMoveTo));
                         prevBoards.add(copyBoard(current_board));
                         copyPieces (simPieces, pieces);
                         activeP.updatePosition ();
                         if (castlingP != null) {
                             castlingP.updatePosition();
                         }
-                        updateBoard();
                         if (isKingInCheck()) {
 
                         }
@@ -329,12 +340,10 @@ public class GamePanel extends JPanel implements Runnable {
         //System.out.println("Best Move: " + bestMoveValue);
         updateBoardWithBestMove(currState.getBoard());
         updateBoard();
+
+        blackPrevMoves.add(bestMoveFinal);
+
         changePlayer();
-
-
-
-
-
     }
 
     private int calculateTotalMaterial() {
@@ -458,7 +467,7 @@ public class GamePanel extends JPanel implements Runnable {
     private void promoting() {
         if (mouse.pressed) {
             for (Piece piece : promoPieces) {
-                if (piece.col == mouse.x / Board.SQUARE_SIZE && piece.row == mouse.y / Board.SQUARE_SIZE) {
+                if (piece.col == mouse.x / SQUARE_SIZE && piece.row == mouse.y / SQUARE_SIZE) {
                     switch (piece.type) {
                         case ROOK:
                             simPieces.add(new Rook(currentColor, activeP.col, activeP.row));
@@ -509,6 +518,13 @@ public class GamePanel extends JPanel implements Runnable {
                 }
                 System.out.println();
             }
+            if (!whitePrevMoves.isEmpty()) {
+                whitePrevMoves.removeLast();
+            }
+            if (!blackPrevMoves.isEmpty()) {
+                blackPrevMoves.removeLast();
+            }
+
             //changePlayer();
         }
     }
@@ -519,6 +535,33 @@ public class GamePanel extends JPanel implements Runnable {
         Graphics2D g2 = (Graphics2D) g;
         board.draw (g2);
 
+        if (currentColor == WHITE) {
+            if (!blackPrevMoves.isEmpty()){
+                Pair <Pair<Integer, Integer>, Pair<Integer, Integer>> lastMove = blackPrevMoves.getLast();
+
+                g2.setColor(new Color(117, 165, 61));
+                g2.fillRect(lastMove.getL().getR() * SQUARE_SIZE, lastMove.getL().getL() * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+                g2.setColor(new Color(144, 198, 82));
+                g2.fillRect(lastMove.getR().getR() * SQUARE_SIZE, lastMove.getR().getL() * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+                //System.out.println("AI Move: " + aiMoveFrom.getL() + " " + aiMoveFrom.getR() + " ");
+            }
+
+            if (mouse.pressed && activeP != null){
+                g2.setColor(new Color(144, 198, 82));
+                g2.fillRect(playerMoveFrom.getL() * SQUARE_SIZE, playerMoveFrom.getR() * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+            }
+        }
+
+        if (currentColor == BLACK && !whitePrevMoves.isEmpty()) {
+            Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> lastMove = whitePrevMoves.getLast();
+
+            g2.setColor(new Color(117, 165, 61));
+            g2.fillRect(lastMove.getL().getL() * SQUARE_SIZE, lastMove.getL().getR() * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+            g2.setColor(new Color(144, 198, 82));
+            g2.fillRect(lastMove.getR().getL() * SQUARE_SIZE, lastMove.getR().getR() * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+            System.out.println("Active Piece: " + lastMove.getL().getL() + " " + lastMove.getL().getR() + " " + lastMove.getR().getL() + " " + lastMove.getR().getR());
+        }
+
         for(Piece p : simPieces){
             p.draw (g2);
         }
@@ -528,8 +571,8 @@ public class GamePanel extends JPanel implements Runnable {
                 if (isIllegal(activeP) || opponentCanCaptureKing()) {
                     g2.setColor(Color.GRAY);
                     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-                    g2.fillRect(activeP.col * Board.SQUARE_SIZE, activeP.row * Board.SQUARE_SIZE,
-                            Board.SQUARE_SIZE, Board.SQUARE_SIZE);
+                    g2.fillRect(activeP.col * SQUARE_SIZE, activeP.row * SQUARE_SIZE,
+                            SQUARE_SIZE, SQUARE_SIZE);
                     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
 
                     activeP.draw(g2);
@@ -537,8 +580,8 @@ public class GamePanel extends JPanel implements Runnable {
                 else {
                     g2.setColor(Color.WHITE);
                     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-                    g2.fillRect(activeP.col * Board.SQUARE_SIZE, activeP.row * Board.SQUARE_SIZE,
-                            Board.SQUARE_SIZE, Board.SQUARE_SIZE);
+                    g2.fillRect(activeP.col * SQUARE_SIZE, activeP.row * SQUARE_SIZE,
+                            SQUARE_SIZE, SQUARE_SIZE);
                     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
 
                     activeP.draw(g2);
@@ -553,7 +596,7 @@ public class GamePanel extends JPanel implements Runnable {
 
             if (promotion) {
                 for (Piece piece : promoPieces) {
-                    g2.drawImage(piece.image, piece.getX(piece.col), piece.getY(piece.row), Board.SQUARE_SIZE, Board.SQUARE_SIZE, null);
+                    g2.drawImage(piece.image, piece.getX(piece.col), piece.getY(piece.row), SQUARE_SIZE, SQUARE_SIZE, null);
                 }
             }
             else {
@@ -586,7 +629,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         //REDO BUTTON
         g2.setColor(Color.RED);
-        g2.fillOval(redoX, redoY, Board.SQUARE_SIZE, Board.SQUARE_SIZE);
+        g2.fillOval(redoX, redoY, SQUARE_SIZE, SQUARE_SIZE);
         g2.setColor(Color.WHITE);
         g2.setFont(new Font("Book Antiqua", Font.PLAIN, 25));
         g2.drawString("REDO", redoX + 10, redoY + 50);
