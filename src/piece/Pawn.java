@@ -2,6 +2,8 @@ package piece;
 import main.GamePanel;
 import main.Type;
 
+import static main.GamePanel.enpassantX;
+
 public class Pawn extends Piece {
     public Pawn(int color, int col, int row) {
         super(color, col, row);
@@ -31,6 +33,11 @@ public class Pawn extends Piece {
                 return true;
             }
             if (Math.abs(targetCol - preCol) == 1 && targetRow == preRow + moveValue && hittingP != null && hittingP.color != color) {
+                return true;
+            }
+
+            //en passant
+            if (targetCol == enpassantX && targetRow == preRow + moveValue && hittingP == null && Math.abs(preCol - enpassantX) == 1) {
                 return true;
             }
         }
