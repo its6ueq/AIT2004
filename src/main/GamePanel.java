@@ -41,6 +41,7 @@ public class GamePanel extends JPanel implements Runnable {
     public static final int BLACK = 1;
     static int currentColor = WHITE;
     int redoX = 8 * SQUARE_SIZE, redoY = 4 * SQUARE_SIZE;
+    public static int enpassantX = -1, enpassantY = -1;
 
     long startA, stopA;
 
@@ -148,6 +149,7 @@ public class GamePanel extends JPanel implements Runnable {
             if (currentColor == BLACK) {
                 aiMove();
                 endGame = checkEndGame();
+                checkEnpassant();
                 return;
             }
             if(mouse.pressed){
@@ -175,6 +177,15 @@ public class GamePanel extends JPanel implements Runnable {
                         playerMoveTo = new Pair<>(activeP.col, activeP.row);
                         whitePrevMoves.add(new Pair<>(playerMoveFrom, playerMoveTo));
                         prevBoards.add(copyBoard(current_board));
+                        System.out.println("Player Move: " + playerMoveFrom.getL() + " " + playerMoveFrom.getR() + " " + playerMoveTo.getL() + " " + playerMoveTo.getR());
+                        if (playerMoveTo.getL() == enpassantX && playerMoveTo.getR() == enpassantY) {
+                            for (Piece piece : simPieces) {
+                                if (piece.col == enpassantX && piece.row == enpassantY + 1) {
+                                    simPieces.remove(piece);
+                                    break;
+                                }
+                            }
+                        }
                         copyPieces (simPieces, pieces);
                         activeP.updatePosition ();
                         if (castlingP != null) {
@@ -388,6 +399,7 @@ public class GamePanel extends JPanel implements Runnable {
                 simPieces.remove(activeP.hittingP);
             }
             checkCastling();
+
             if (isIllegal(activeP) || opponentCanCaptureKing()) {
                 return;
             }
@@ -420,6 +432,30 @@ public class GamePanel extends JPanel implements Runnable {
             castlingP.x = castlingP.getX(castlingP.col);
         }
     }
+
+    private void checkEnpassant(){
+        if (currentColor == BLACK) {
+            enpassantX = -1;
+            enpassantY = -1;
+            return;
+        }
+        if (blackPrevMoves.isEmpty()) return;
+        Pair<Integer, Integer> lastPos = blackPrevMoves.getLast().getL();
+        Pair<Integer, Integer> lastMove = blackPrevMoves.getLast().getR();
+        int lastPosX = lastPos.getR();
+        int lastPosY = lastPos.getL();
+        int lastMoveX = lastMove.getR();
+        int lastMoveY = lastMove.getL();
+
+
+        if (current_board[lastMoveY][lastMoveX] == 'p' && Math.abs(lastPosY - lastMoveY) == 2) {
+            enpassantX = lastMoveX;
+            enpassantY = lastMoveY - 1;
+        }
+
+        System.out.println("Enpassant Last Move: " + enpassantX + " " + enpassantY);
+    }
+
     private boolean isKingInCheck() {
         Piece king = getKing(true);
         if (activeP.canMove(king.col, king.row)) {
