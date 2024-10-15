@@ -8,16 +8,16 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import static java.lang.Math.sqrt;
-import static main.AI.*;
+import static main.Board.SQUARE_SIZE;
 
 
 public class GamePanel extends JPanel implements Runnable {
     private static final int TimeLimit = 30;
 
-    public static final int WIDTH = 1100;
-    public static final int HEIGHT = 800;
+    public static final int WIDTH = 990;
+    public static final int HEIGHT = 720;
     final int FPS = 60;
+    public boolean redoPressed = false;
     Thread gameThread;
     Board board = new Board ();
     Mouse mouse = new Mouse ();
@@ -26,14 +26,26 @@ public class GamePanel extends JPanel implements Runnable {
     State currState;
     public static ArrayList<Piece> pieces = new ArrayList<Piece> ();
     public static ArrayList<Piece> simPieces = new ArrayList<> ();
+
+    ArrayList<char[][]> prevBoards = new ArrayList<> ();
+    private ArrayList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> whitePrevMoves = new ArrayList<>();
+    private ArrayList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> blackPrevMoves = new ArrayList<>();
+
+    private Pair<Integer, Integer> playerMoveFrom;
+    private Pair<Integer, Integer> playerMoveTo;
+
     ArrayList<Piece> promoPieces = new ArrayList<> ();
     Piece activeP, checkingP;
     public static Piece castlingP;
     public static final int WHITE = 0;
     public static final int BLACK = 1;
-    int currentColor = WHITE;
+    static int currentColor = WHITE;
+    int redoX = 8 * SQUARE_SIZE, redoY = 4 * SQUARE_SIZE;
+    public static int enpassantX = -1, enpassantY = -1;
 
     long startA, stopA;
+
+    int endGame = 0;
 
     boolean canMove;
     boolean validSquare;
@@ -122,12 +134,22 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void update(){
+        if(endGame != 0) return;
+        if (mouse.pressed && mouse.x >= redoX && mouse.x <= redoX + SQUARE_SIZE &&
+                mouse.y >= redoY && mouse.y <= redoY + SQUARE_SIZE && !redoPressed) {
+            redo();
+            redoPressed = true;
+            return;
+        }
+
         if (promotion) {
             promoting();
         }
         else {
             if (currentColor == BLACK) {
                 aiMove();
+                endGame = checkEndGame();
+                checkEnpassant();
                 return;
             }
             if(mouse.pressed){
@@ -135,9 +157,12 @@ public class GamePanel extends JPanel implements Runnable {
                 if(activeP == null){
                     for(Piece piece : simPieces){
                         if(piece.color == currentColor &&
-                                piece.col == mouse.x/Board.SQUARE_SIZE &&
-                                piece.row == mouse.y/Board.SQUARE_SIZE){
+                                piece.col == mouse.x/ SQUARE_SIZE &&
+                                piece.row == mouse.y/ SQUARE_SIZE){
                             activeP = piece;
+                            playerMoveFrom = new Pair<>(activeP.col, activeP.row);
+
+                            break;
                         }
                     }
                 }
@@ -149,12 +174,23 @@ public class GamePanel extends JPanel implements Runnable {
             else{
                 if(activeP != null){
                     if(validSquare){
+                        playerMoveTo = new Pair<>(activeP.col, activeP.row);
+                        whitePrevMoves.add(new Pair<>(playerMoveFrom, playerMoveTo));
+                        prevBoards.add(copyBoard(current_board));
+                        System.out.println("Player Move: " + playerMoveFrom.getL() + " " + playerMoveFrom.getR() + " " + playerMoveTo.getL() + " " + playerMoveTo.getR());
+                        if (playerMoveTo.getL() == enpassantX && playerMoveTo.getR() == enpassantY) {
+                            for (Piece piece : simPieces) {
+                                if (piece.col == enpassantX && piece.row == enpassantY + 1) {
+                                    simPieces.remove(piece);
+                                    break;
+                                }
+                            }
+                        }
                         copyPieces (simPieces, pieces);
                         activeP.updatePosition ();
                         if (castlingP != null) {
                             castlingP.updatePosition();
                         }
-                        updateBoard();
                         if (isKingInCheck()) {
 
                         }
@@ -164,6 +200,8 @@ public class GamePanel extends JPanel implements Runnable {
                         else {
                             changePlayer();
                         }
+                        updateBoard();
+                        endGame = checkEndGame();
                     }
                     else{
                         copyPieces (pieces, simPieces);
@@ -173,7 +211,13 @@ public class GamePanel extends JPanel implements Runnable {
                 }
             }
         }
+    }
 
+    private int checkEndGame(){
+        State currState = new State(current_board);
+        currState.color = currentColor;
+        System.out.println(ai.endGame(currState));
+        return ai.endGame(currState);
     }
 
     private void updateBoard(){
@@ -193,6 +237,7 @@ public class GamePanel extends JPanel implements Runnable {
             System.out.println();
         }
     }
+
 
     private void updateBoardWithBestMove(char[][] bestMove) {
         // Update the current_board array
@@ -244,11 +289,13 @@ public class GamePanel extends JPanel implements Runnable {
         currState.endGame = sumPoint <= 1800;
         System.out.println("Start");
 
-        int DEPTH = 0;
+        int DEPTH = 4;
         boolean check = true, isCurrDepthDone = true;
         while(check){
             DEPTH++;
-            for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : ai.getAllPossibleMoves(currState)) {
+            LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves = new LinkedList<>();
+            ai.getAllPossibleMoves(currState, moves);
+            for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> move : moves) {
 //            System.out.println("step"+ move.getL().getL() + " " + move.getL().getR());
                 char tempPiece = currState.board[move.getR().getL()][move.getR().getR()];
                 int tempScore = currState.score;
@@ -259,15 +306,15 @@ public class GamePanel extends JPanel implements Runnable {
 
                 currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
 
-                int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, DEPTH - 1, currState);
+                if(currState.validState()){
+                    int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, DEPTH - 1, currState);
 
-                System.out.println("Move Value: " + moveValue);
-//            if(moveValue == 2147483647) currState.printBoard();
-//            System.out.println("Best Value: " + bestMoveValue);
-                if (moveValue < bestMoveValue) {
-                    bestMoveValue = moveValue;
-                    bestMove = move;
-                }
+                    System.out.println("Move Value: " + moveValue);
+                    if (moveValue < bestMoveValue) {
+                        bestMoveValue = moveValue;
+                        bestMove = move;
+                    }
+                } else System.out.println("Not Valid State");
 
                 currState.score = tempScore;
                 currState.castled = tempCastled;
@@ -281,6 +328,7 @@ public class GamePanel extends JPanel implements Runnable {
                     isCurrDepthDone = false;
                     break;
                 }
+                check = false;
 //            bestMove.printBoard();
             }
             if(isCurrDepthDone) {
@@ -307,12 +355,10 @@ public class GamePanel extends JPanel implements Runnable {
         //System.out.println("Best Move: " + bestMoveValue);
         updateBoardWithBestMove(currState.getBoard());
         updateBoard();
+
+        blackPrevMoves.add(bestMoveFinal);
+
         changePlayer();
-
-
-
-
-
     }
 
     private int calculateTotalMaterial() {
@@ -353,6 +399,7 @@ public class GamePanel extends JPanel implements Runnable {
                 simPieces.remove(activeP.hittingP);
             }
             checkCastling();
+
             if (isIllegal(activeP) || opponentCanCaptureKing()) {
                 return;
             }
@@ -385,6 +432,30 @@ public class GamePanel extends JPanel implements Runnable {
             castlingP.x = castlingP.getX(castlingP.col);
         }
     }
+
+    private void checkEnpassant(){
+        if (currentColor == BLACK) {
+            enpassantX = -1;
+            enpassantY = -1;
+            return;
+        }
+        if (blackPrevMoves.isEmpty()) return;
+        Pair<Integer, Integer> lastPos = blackPrevMoves.getLast().getL();
+        Pair<Integer, Integer> lastMove = blackPrevMoves.getLast().getR();
+        int lastPosX = lastPos.getR();
+        int lastPosY = lastPos.getL();
+        int lastMoveX = lastMove.getR();
+        int lastMoveY = lastMove.getL();
+
+
+        if (current_board[lastMoveY][lastMoveX] == 'p' && Math.abs(lastPosY - lastMoveY) == 2) {
+            enpassantX = lastMoveX;
+            enpassantY = lastMoveY - 1;
+        }
+
+        System.out.println("Enpassant Last Move: " + enpassantX + " " + enpassantY);
+    }
+
     private boolean isKingInCheck() {
         Piece king = getKing(true);
         if (activeP.canMove(king.col, king.row)) {
@@ -436,7 +507,7 @@ public class GamePanel extends JPanel implements Runnable {
     private void promoting() {
         if (mouse.pressed) {
             for (Piece piece : promoPieces) {
-                if (piece.col == mouse.x / Board.SQUARE_SIZE && piece.row == mouse.y / Board.SQUARE_SIZE) {
+                if (piece.col == mouse.x / SQUARE_SIZE && piece.row == mouse.y / SQUARE_SIZE) {
                     switch (piece.type) {
                         case ROOK:
                             simPieces.add(new Rook(currentColor, activeP.col, activeP.row));
@@ -457,16 +528,79 @@ public class GamePanel extends JPanel implements Runnable {
                     copyPieces(simPieces, pieces);
                     activeP = null;
                     promotion = false;
+                    updateBoard();
                     changePlayer();
                 }
             }
         }
     }
+
+    private char[][] copyBoard(char[][] board){
+        char[][] newBoard = new char[8][8];
+        for (int i = 0; i < 8; i++){
+            for (int j = 0; j < 8; j++){
+                newBoard[i][j] = board[i][j];
+            }
+        }
+
+        return newBoard;
+    }
+
+    public void redo(){
+        if(!prevBoards.isEmpty()){
+            current_board = prevBoards.getLast();
+            prevBoards.removeLast();
+            updateBoardWithBestMove(current_board);
+            System.out.println ("REDO:");
+            for (int i = 0; i < 8; i++){
+                for (int j = 0; j < 8; j++){
+                    System.out.print(current_board[i][j] + " ");
+                }
+                System.out.println();
+            }
+            if (!whitePrevMoves.isEmpty()) {
+                whitePrevMoves.removeLast();
+            }
+            if (!blackPrevMoves.isEmpty()) {
+                blackPrevMoves.removeLast();
+            }
+
+            //changePlayer();
+        }
+    }
+
     public void paintComponent(Graphics g){
         super.paintComponent (g);
 
         Graphics2D g2 = (Graphics2D) g;
         board.draw (g2);
+
+        if (currentColor == WHITE) {
+            if (!blackPrevMoves.isEmpty()){
+                Pair <Pair<Integer, Integer>, Pair<Integer, Integer>> lastMove = blackPrevMoves.getLast();
+
+                g2.setColor(new Color(117, 165, 61));
+                g2.fillRect(lastMove.getL().getR() * SQUARE_SIZE, lastMove.getL().getL() * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+                g2.setColor(new Color(144, 198, 82));
+                g2.fillRect(lastMove.getR().getR() * SQUARE_SIZE, lastMove.getR().getL() * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+                //System.out.println("AI Move: " + aiMoveFrom.getL() + " " + aiMoveFrom.getR() + " ");
+            }
+
+            if (mouse.pressed && activeP != null){
+                g2.setColor(new Color(144, 198, 82));
+                g2.fillRect(playerMoveFrom.getL() * SQUARE_SIZE, playerMoveFrom.getR() * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+            }
+        }
+
+        if (currentColor == BLACK && !whitePrevMoves.isEmpty()) {
+            Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> lastMove = whitePrevMoves.getLast();
+
+            g2.setColor(new Color(117, 165, 61));
+            g2.fillRect(lastMove.getL().getL() * SQUARE_SIZE, lastMove.getL().getR() * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+            g2.setColor(new Color(144, 198, 82));
+            g2.fillRect(lastMove.getR().getL() * SQUARE_SIZE, lastMove.getR().getR() * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+            //System.out.println("Active Piece: " + lastMove.getL().getL() + " " + lastMove.getL().getR() + " " + lastMove.getR().getL() + " " + lastMove.getR().getR());
+        }
 
         for(Piece p : simPieces){
             p.draw (g2);
@@ -477,8 +611,8 @@ public class GamePanel extends JPanel implements Runnable {
                 if (isIllegal(activeP) || opponentCanCaptureKing()) {
                     g2.setColor(Color.GRAY);
                     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-                    g2.fillRect(activeP.col * Board.SQUARE_SIZE, activeP.row * Board.SQUARE_SIZE,
-                            Board.SQUARE_SIZE, Board.SQUARE_SIZE);
+                    g2.fillRect(activeP.col * SQUARE_SIZE, activeP.row * SQUARE_SIZE,
+                            SQUARE_SIZE, SQUARE_SIZE);
                     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
 
                     activeP.draw(g2);
@@ -486,8 +620,8 @@ public class GamePanel extends JPanel implements Runnable {
                 else {
                     g2.setColor(Color.WHITE);
                     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-                    g2.fillRect(activeP.col * Board.SQUARE_SIZE, activeP.row * Board.SQUARE_SIZE,
-                            Board.SQUARE_SIZE, Board.SQUARE_SIZE);
+                    g2.fillRect(activeP.col * SQUARE_SIZE, activeP.row * SQUARE_SIZE,
+                            SQUARE_SIZE, SQUARE_SIZE);
                     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
 
                     activeP.draw(g2);
@@ -496,33 +630,48 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2.setFont(new Font("Book Antiqua", Font.PLAIN, 40));
+        g2.setFont(new Font("Book Antiqua", Font.PLAIN, 35));
         g2.setColor(Color.WHITE);
+        if (endGame == 0){
 
-        if (promotion) {
-            for (Piece piece : promoPieces) {
-                g2.drawImage(piece.image, piece.getX(piece.col), piece.getY(piece.row), Board.SQUARE_SIZE, Board.SQUARE_SIZE, null);
-            }
-        }
-        else {
-            if (currentColor == WHITE) {
-                g2.drawString("White's turn", 850, 250);
-                g2.drawString("Time: ", 825, 550);
-                g2.drawString(String.valueOf((double)(stopA - startA)/1000), 825, 650);
-                if (checkingP != null && checkingP.color == BLACK) {
-                    g2.drawString("The King", 840, 350);
-                    g2.drawString("is in check!", 840, 450);
+            if (promotion) {
+                for (Piece piece : promoPieces) {
+                    g2.drawImage(piece.image, piece.getX(piece.col), piece.getY(piece.row), SQUARE_SIZE, SQUARE_SIZE, null);
                 }
             }
             else {
-                g2.drawString("Black's turn", 850, 150);
-                g2.drawString("Thinking", 850, 250);
+                if (currentColor == WHITE) {
+                    g2.drawString("White's turn", 750, 250);
+                    g2.drawString("Time: ", 725, 550);
+                    g2.drawString(String.valueOf((double)(stopA - startA)/1000), 825, 650);
+                    if (checkingP != null && checkingP.color == BLACK) {
+                        g2.drawString("The King", 740, 350);
+                        g2.drawString("is in check!", 740, 450);
+                    }
+                }
+                else {
+                    g2.drawString("Black's turn", 750, 150);
+                    g2.drawString("Thinking", 750, 250);
 
-                if (checkingP != null && checkingP.color == WHITE) {
-                    g2.drawString("The King", 840, 350);
-                    g2.drawString("is in check!", 840, 450);
+                    if (checkingP != null && checkingP.color == WHITE) {
+                        g2.drawString("The King", 740, 350);
+                        g2.drawString("is in check!", 740, 450);
+                    }
                 }
             }
+        } else{
+            if(endGame == 1) g2.drawString("BLACK WIN", 750, 150);
+            if(endGame == 2) g2.drawString("WHITE WIN", 750, 250);
+            if(endGame == 3) g2.drawString("STALEMATE", 750, 350);
+            g2.drawString("Time: ", 725, 550);
+            g2.drawString(String.valueOf((double)(stopA - startA)/1000), 825, 650);
         }
+
+        //REDO BUTTON
+        g2.setColor(Color.RED);
+        g2.fillOval(redoX, redoY, SQUARE_SIZE, SQUARE_SIZE);
+        g2.setColor(Color.WHITE);
+        g2.setFont(new Font("Book Antiqua", Font.PLAIN, 25));
+        g2.drawString("REDO", redoX + 10, redoY + 50);
     }
 }

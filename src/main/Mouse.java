@@ -14,6 +14,8 @@ public class Mouse extends MouseAdapter {
     @Override
     public void mouseReleased(MouseEvent e) {
         pressed = false;
+        GamePanel gamePanel = (GamePanel) e.getSource();
+        gamePanel.redoPressed = false;
     }
 
     @Override
