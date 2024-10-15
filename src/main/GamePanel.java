@@ -295,15 +295,15 @@ public class GamePanel extends JPanel implements Runnable {
 
                 currState.goMove(move.getL().getL(), move.getL().getR(), move.getR().getL(), move.getR().getR());
 
-                int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, DEPTH - 1, currState);
+                if(currState.validState()){
+                    int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, DEPTH - 1, currState);
 
-                System.out.println("Move Value: " + moveValue);
-//            if(moveValue == 2147483647) currState.printBoard();
-//            System.out.println("Best Value: " + bestMoveValue);
-                if (moveValue < bestMoveValue) {
-                    bestMoveValue = moveValue;
-                    bestMove = move;
-                }
+                    System.out.println("Move Value: " + moveValue);
+                    if (moveValue < bestMoveValue) {
+                        bestMoveValue = moveValue;
+                        bestMove = move;
+                    }
+                } else System.out.println("Not Valid State");
 
                 currState.score = tempScore;
                 currState.castled = tempCastled;

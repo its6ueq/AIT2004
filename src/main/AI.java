@@ -366,9 +366,9 @@ public class AI {
     public int endGame(State currState){
         LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves = new LinkedList<>();
         getAllPossibleMoves(currState, possibleMoves);
-        System.out.println("Current color: " + currState.color);
+//        System.out.println("Current color: " + currState.color);
         if (possibleMoves.isEmpty()) {
-            System.out.println("No possible moves");
+//            System.out.println("No possible moves");
             if (currState.isKingInCheck(currState.color)) {
                 //System.out.println("Checkmate");
                 return currentColor == WHITE ? 1 : 2; // Checkmate
