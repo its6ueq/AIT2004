@@ -310,7 +310,8 @@ public class GamePanel extends JPanel implements Runnable {
                     int moveValue = ai.alphaBetaMax(Integer.MIN_VALUE, Integer.MAX_VALUE, DEPTH - 1, currState);
 
                     System.out.println("Move Value: " + moveValue);
-                    if (moveValue < bestMoveValue) {
+                    if (bestMove == null) bestMove = move;
+                    else if (moveValue < bestMoveValue) {
                         bestMoveValue = moveValue;
                         bestMove = move;
                     }
