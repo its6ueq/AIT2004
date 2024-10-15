@@ -23,8 +23,8 @@ public class AI {
 //        System.out.println("Max Depth: " + depth);
         if (depth == 0 || currState.endGame) {
             return switch (endGame(currState)) {
-                case 1 -> -10000;
-                case 2 -> 10000;
+                case 1 -> -1000000;
+                case 2 -> 1000000;
                 case 3 -> 0;
                 default -> currState.getScore();
             };
@@ -110,8 +110,8 @@ public class AI {
 //        System.out.println("Min Depth: " + depth);
         if (depth == 0 || currState.endGame) {
             return switch (endGame(currState)) {
-                case 1 -> -10000;
-                case 2 -> 10000;
+                case 1 -> -1000000;
+                case 2 -> 1000000;
                 case 3 -> 0;
                 default -> currState.getScore();
             };

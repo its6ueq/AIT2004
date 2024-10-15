@@ -832,14 +832,14 @@ public class State  implements Comparable<State> {
             case 'b' -> -330;
             case 'r' -> -500;
             case 'q' -> -900;
-            case 'k' -> -100000;
+            case 'k' -> -1000000;
 
             case 'P' -> +100;
             case 'N' -> +320;
             case 'B' -> +330;
             case 'R' -> +500;
             case 'Q' -> +900;
-            case 'K' -> +100000;
+            case 'K' -> +1000000;
             default -> 0;
         };
     }

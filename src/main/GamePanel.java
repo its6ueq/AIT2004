@@ -292,6 +292,7 @@ public class GamePanel extends JPanel implements Runnable {
         int DEPTH = 4;
         boolean check = true, isCurrDepthDone = true;
         while(check){
+            if(sumPoint <= 1800) DEPTH ++;
             DEPTH++;
             LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves = new LinkedList<>();
             ai.getAllPossibleMoves(currState, moves);
