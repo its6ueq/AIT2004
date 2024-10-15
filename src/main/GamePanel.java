@@ -39,7 +39,7 @@ public class GamePanel extends JPanel implements Runnable {
     public static Piece castlingP;
     public static final int WHITE = 0;
     public static final int BLACK = 1;
-    int currentColor = WHITE;
+    static int currentColor = WHITE;
     int redoX = 8 * SQUARE_SIZE, redoY = 4 * SQUARE_SIZE;
 
     long startA, stopA;
@@ -204,6 +204,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     private int checkEndGame(){
         State currState = new State(current_board);
+        currState.color = currentColor;
         System.out.println(ai.endGame(currState));
         return ai.endGame(currState);
     }
@@ -562,7 +563,7 @@ public class GamePanel extends JPanel implements Runnable {
             g2.fillRect(lastMove.getL().getL() * SQUARE_SIZE, lastMove.getL().getR() * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
             g2.setColor(new Color(144, 198, 82));
             g2.fillRect(lastMove.getR().getL() * SQUARE_SIZE, lastMove.getR().getR() * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
-            System.out.println("Active Piece: " + lastMove.getL().getL() + " " + lastMove.getL().getR() + " " + lastMove.getR().getL() + " " + lastMove.getR().getR());
+            //System.out.println("Active Piece: " + lastMove.getL().getL() + " " + lastMove.getL().getR() + " " + lastMove.getR().getL() + " " + lastMove.getR().getR());
         }
 
         for(Piece p : simPieces){

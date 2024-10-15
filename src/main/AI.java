@@ -2,8 +2,7 @@ package main;
 
 import java.util.*;
 
-import static main.GamePanel.BLACK;
-import static main.GamePanel.WHITE;
+import static main.GamePanel.*;
 import static main.State.*;
 
 public class AI {
@@ -22,8 +21,13 @@ public class AI {
 //        a++;
 //        if(a== 100) System.exit(0);
 //        System.out.println("Max Depth: " + depth);
-        if (depth == 0) {
-            return currState.getScore();
+        if (depth == 0 || currState.endGame) {
+            return switch (endGame(currState)) {
+                case 1 -> -10000;
+                case 2 -> 10000;
+                case 3 -> 0;
+                default -> currState.getScore();
+            };
         }
 
         int bestValue = Integer.MIN_VALUE;
@@ -104,8 +108,13 @@ public class AI {
 
     public int  alphaBetaMin(int alpha, int beta, int depth, State currState) {
 //        System.out.println("Min Depth: " + depth);
-        if (depth == 0) {
-            return currState.getScore();
+        if (depth == 0 || currState.endGame) {
+            return switch (endGame(currState)) {
+                case 1 -> -10000;
+                case 2 -> 10000;
+                case 3 -> 0;
+                default -> currState.getScore();
+            };
         }
 
         int bestValue = Integer.MAX_VALUE;
@@ -247,6 +256,9 @@ public class AI {
                 addMove(row, col, row + direction, col + i, moves, false);
             }
         }
+
+        //En passant
+
     }
 
     private void generateKnightMoves(State prevState, int row, int col, char piece, LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> moves) {
@@ -354,10 +366,19 @@ public class AI {
     public int endGame(State currState){
         LinkedList<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> possibleMoves = new LinkedList<>();
         getAllPossibleMoves(currState, possibleMoves);
-        if(possibleMoves.isEmpty()) return 3;
+        System.out.println("Current color: " + currState.color);
+        if (possibleMoves.isEmpty()) {
+            System.out.println("No possible moves");
+            if (currState.isKingInCheck(currState.color)) {
+                //System.out.println("Checkmate");
+                return currentColor == WHITE ? 1 : 2; // Checkmate
+            } else {
+                return 3; // Stalemate
+            }
+        }
         if(!canMove(currState)){
-            if(currState.color == WHITE) return 2;
-            else return 1;
+            if(currState.color == WHITE) return 1;
+            else return 2;
         }
         return 0;
     }

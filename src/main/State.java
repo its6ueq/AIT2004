@@ -962,6 +962,14 @@ public class State  implements Comparable<State> {
         return true;
     }
 
+    public boolean isKingInCheck(int color) {
+        if (color == BLACK) {
+            return whiteChecked[BKingX][BKingY] != 0;
+        } else {
+            return blackChecked[WKingX][WKingY] != 0;
+        }
+    }
+
 
     public void printBoard() {
         if(validState()) System.out.println("valid state");
